@@ -2,11 +2,11 @@
     <div class="container">
         <div class="row margin-top-0">
             <div class="col-sm-8 col-sm-offset-2">
-                <div class="logo_top">
+                <!--div class="logo_top">
                     <a href="<?php echo base_url()?>">
-                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200">
+                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200" width="250px">
                     </a>
-                </div>
+                </div-->
 				<?php
                     echo form_open(base_url() . 'index.php/home/registration/add_info/', array(
                         'class' => 'form-login',

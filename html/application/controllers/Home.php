@@ -1723,15 +1723,18 @@ class Home extends CI_Controller
     	$this->db->where('type','version');
     	$this->db->update('general_settings',array('value'=>$um));
     }
-    
+
     /* FUNCTION: Concerning Login */
     function vendor_logup($para1 = "", $para2 = "")
     {
-		if($this->crud_model->get_settings_value('general_settings','captcha_status','value') == 'ok'){
-			$this->load->library('recaptcha');
-		}
+	if($this->crud_model->get_settings_value('general_settings','captcha_status','value') == 'ok'){
+		$this->load->library('recaptcha');
+	}
+
         $this->load->library('form_validation');
         if ($para1 == "add_info") {
+		$state="Chihuahua";
+		$country="Mexico";
         	$msg = '';
             $this->load->library('form_validation');
             $safe = 'yes';
@@ -1754,11 +1757,15 @@ class Home extends CI_Controller
             $this->form_validation->set_rules('address1', 'Address Line 1', 'required');
             $this->form_validation->set_rules('address2', 'Address Line 2', 'required');
             $this->form_validation->set_rules('display_name', 'Your Display Name', 'required');
-            $this->form_validation->set_rules('state', 'State', 'required');
-            $this->form_validation->set_rules('country', 'Country', 'required');
-			$this->form_validation->set_rules('city', 'City', 'required');
+            if($state==""){
+		 $this->form_validation->set_rules('state', 'State', 'required');
+            }
+	    if($country==""){
+		$this->form_validation->set_rules('country', 'Country', 'required');
+	    }
+	    $this->form_validation->set_rules('city', 'City', 'required');
             $this->form_validation->set_rules('zip', 'Zip', 'required');
-			$this->form_validation->set_rules('terms_check', 'Terms & Conditions', 'required', array('required' => translate('you_must_agree_with_terms_&_conditions')));
+	    $this->form_validation->set_rules('terms_check', 'Terms & Conditions', 'required', array('required' => translate('you_must_agree_with_terms_&_conditions')));
             if ($this->form_validation->run() == FALSE)
             {
                 echo validation_errors();
@@ -1766,71 +1773,71 @@ class Home extends CI_Controller
             else
             {
                 if($safe == 'yes'){
-					if($this->crud_model->get_settings_value('general_settings','captcha_status','value') == 'ok'){
-						$captcha_answer = $this->input->post('g-recaptcha-response');
-						$response = $this->recaptcha->verifyResponse($captcha_answer);
-						if ($response['success']) {
-							$data['name']               = $this->input->post('name');
-							$data['email']              = $this->input->post('email');
-							$data['address1']           = $this->input->post('address1');
-							$data['address2']           = $this->input->post('address2');
-							$data['company']            = $this->input->post('company');
-							$data['display_name']       = $this->input->post('display_name');
-							$data['state']       		= $this->input->post('state');
-							$data['country']       		= $this->input->post('country');
-							$data['city']       		= $this->input->post('city');
-							$data['zip']       			= $this->input->post('zip');
-							$data['create_timestamp']   = time();
-							$data['approve_timestamp']  = 0;
-							$data['approve_timestamp']  = 0;
-							$data['membership']         = 0;
-							$data['status']             = 'pending';
+			if($this->crud_model->get_settings_value('general_settings','captcha_status','value') == 'ok'){
+				$captcha_answer = $this->input->post('g-recaptcha-response');
+				$response = $this->recaptcha->verifyResponse($captcha_answer);
+				if ($response['success']) {
+					$data['name']               = $this->input->post('name');
+					$data['email']              = $this->input->post('email');
+					$data['address1']           = $this->input->post('address1');
+					$data['address2']           = $this->input->post('address2');
+					$data['company']            = $this->input->post('company');
+					$data['display_name']       = $this->input->post('display_name');
+					$data['state']       	    = $state==""?$this->input->post('state'):$state;
+					$data['country']       	    = $country==""?$this->input->post('country'):$country;
+					$data['city']       	    = $this->input->post('city');
+					$data['zip']       	    = $this->input->post('zip');
+					$data['create_timestamp']   = time();
+					$data['approve_timestamp']  = 0;
+					$data['approve_timestamp']  = 0;
+					$data['membership']         = 0;
+					$data['status']             = 'pending';
 							
-							if ($this->input->post('password1') == $this->input->post('password2')) {
-								$password         = $this->input->post('password1');
-								$data['password'] = sha1($password);
-								$this->db->insert('vendor', $data);
-								$msg = 'done';
-								if($this->email_model->account_opening('vendor', $data['email'], $password) == false){
-									$msg = 'done_but_not_sent';
-								}else{
-									$msg = 'done_and_sent';
-								}
-							}
-							echo $msg;
-						} else {
-							echo translate('please_fill_the_captcha');
+					if ($this->input->post('password1') == $this->input->post('password2')) {
+						$password         = $this->input->post('password1');
+						$data['password'] = sha1($password);
+						$this->db->insert('vendor', $data);
+						$msg = 'done';
+						if($this->email_model->account_opening('vendor', $data['email'], $password) == false){
+							$msg = 'done_but_not_sent';
+						}else{
+							$msg = 'done_and_sent';
 						}
-					}else{
-						$data['name']               = $this->input->post('name');
-						$data['email']              = $this->input->post('email');
-						$data['address1']           = $this->input->post('address1');
-						$data['address2']           = $this->input->post('address2');
-						$data['company']            = $this->input->post('company');
-						$data['display_name']       = $this->input->post('display_name');
-						$data['state']       		= $this->input->post('state');
-						$data['country']       		= $this->input->post('country');
-						$data['city']       		= $this->input->post('city');
-						$data['zip']       			= $this->input->post('zip');
-						$data['create_timestamp']   = time();
-						$data['approve_timestamp']  = 0;
-						$data['approve_timestamp']  = 0;
-						$data['membership']         = 0;
-						$data['status']             = 'pending';
-						
-						if ($this->input->post('password1') == $this->input->post('password2')) {
-							$password         = $this->input->post('password1');
-							$data['password'] = sha1($password);
-							$this->db->insert('vendor', $data);
-							$msg = 'done';
-							if($this->email_model->account_opening('vendor', $data['email'], $password) == false){
-								$msg = 'done_but_not_sent';
-							}else{
-								$msg = 'done_and_sent';
-							}
-						}
-						echo $msg;
 					}
+					echo $msg;
+				} else {
+					echo translate('please_fill_the_captcha');
+				}
+			}else{
+				$data['name']               = $this->input->post('name');
+				$data['email']              = $this->input->post('email');
+				$data['address1']           = $this->input->post('address1');
+				$data['address2']           = $this->input->post('address2');
+				$data['company']            = $this->input->post('company');
+				$data['display_name']       = $this->input->post('display_name');
+				$data['state']       	    = $state==""?$this->input->post('state'):$state;
+				$data['country']       	    = $country==""?$this->input->post('country'):$country;
+				$data['city']       	    = $this->input->post('city');
+				$data['zip']       	    = $this->input->post('zip');
+				$data['create_timestamp']   = time();
+				$data['approve_timestamp']  = 0;
+				$data['approve_timestamp']  = 0;
+				$data['membership']         = 0;
+				$data['status']             = 'pending';
+						
+				if ($this->input->post('password1') == $this->input->post('password2')) {
+					$password         = $this->input->post('password1');
+					$data['password'] = sha1($password);
+					$this->db->insert('vendor', $data);
+					$msg = 'done';
+					if($this->email_model->account_opening('vendor', $data['email'], $password) == false){
+						$msg = 'done_but_not_sent';
+					}else{
+						$msg = 'done_and_sent';
+					}
+				}
+				echo $msg;
+			}
                 } else {
                     echo 'Disallowed charecter : " '.$char.' " in the POST';
                 }

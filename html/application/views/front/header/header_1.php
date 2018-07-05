@@ -3,7 +3,7 @@
     <div class="container">
         <div class="top-bar-left">
             <ul class="list-inline">
-                <li class="dropdown flags">
+                <!--li class="dropdown flags">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <?php
                             if($set_lang = $this->session->userdata('language')){} else {
@@ -64,7 +64,7 @@
                         ?>
                     </ul>
 
-                </li>
+                </li-->
             </ul>
         </div>
         <div class="top-bar-right">
@@ -167,15 +167,15 @@
             <nav class="navigation closed clearfix">
                 <a href="#" class="menu-toggle-close btn"><i class="fa fa-times"></i></a>
                 <ul class="nav sf-menu">
-                    <li <?php if($asset_page=='home'){ ?>class="active"<?php } ?>>
+                    <!--li <?php if($asset_page=='home'){ ?>class="active"<?php } ?>>
                         <a href="<?php echo base_url(); ?>index.php/home">
                             <?php echo translate('homepage');?>
                         </a>
-                    </li>
+                    </li-->
                     <li class="hidden-sm hidden-xs <?php if($asset_page=='all_category'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/all_category">
+                        <!--a href="<?php echo base_url(); ?>index.php/home/all_category">
 							<?php echo translate('all_categories');?>
-                        </a>
+                        </a-->
                         <ul>
                         	<?php
 								$all_category = $this->db->get('category')->result_array();

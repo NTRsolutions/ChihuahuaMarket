@@ -2,11 +2,11 @@
     <div class="container">
         <div class="row margin-top-0">
             <div class="col-sm-8 col-sm-offset-2">
-                <div class="logo_top">
+                <!--div class="logo_top">
                     <a href="<?php echo base_url()?>">
-                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200">
+                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200" width="250px">
                     </a>
-                </div>
+                </div-->
 				<?php
                     echo form_open(base_url() . 'index.php/home/vendor_logup/add_info/', array(
                         'class' => 'form-login',
@@ -76,16 +76,16 @@
                                 <input class="form-control required" name="city" type="text" placeholder="<?php echo translate('city');?>" data-toggle="tooltip" title="<?php echo translate('city');?>">
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <input class="form-control required" name="state" type="text" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <input class="form-control required" name="country" type="text" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>">
-                            </div>
-                        </div>
+                        <!--div class="col-md-6">
+                            <div class="form-group"-->
+                                <input class="form-control required" name="state" type="hidden" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>" >
+                            <!--/div>
+                        </div-->
+                        <!--div class="col-md-6">
+                            <div class="form-group"-->
+                                <input class="form-control required" name="country" type="hidden" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>">
+                            <!--/div>
+                        </div-->
                         <div class="col-md-6">
                             <div class="form-group">
                                 <input class="form-control required" name="zip" type="text" placeholder="<?php echo translate('zip');?>" data-toggle="tooltip" title="<?php echo translate('zip');?>">
