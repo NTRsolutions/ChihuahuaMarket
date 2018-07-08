@@ -1,6 +1,7 @@
 <section class="page-section invoice">
     <div class="container">
     	<?php
+			$success_msg="¡Orden exitosa!";
 			$sale_details = $this->db->get_where('sale',array('sale_id'=>$sale_id))->result_array();
 			foreach($sale_details as $row){
 		?>
@@ -12,7 +13,8 @@
                         	<?php
 								$home_top_logo = $this->db->get_where('ui_settings',array('type' => 'home_top_logo'))->row()->value;
 							?>
-							<img src="<?php echo base_url(); ?>uploads/logo_image/logo_<?php echo $home_top_logo; ?>.png" alt="SuperShop"/>
+							<h2><?php echo $success_msg;?></h2>
+							<img src="<?php echo base_url(); ?>uploads/logo_image/logo_<?php echo $home_top_logo; ?>.png" alt="SuperShop"/ width="200px">
                         </div>
                         <div class="invoice_info">
                             <p><b><?php echo translate('invoice'); ?> # :</b><?php echo $row['sale_code']; ?></p>

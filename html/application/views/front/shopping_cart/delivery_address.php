@@ -59,12 +59,13 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-12" id="maps" style="height:400px;">
+    <?php /*<div class="col-sm-12" id="maps" style="height:400px;">
         <div class="form-group">
             <div id="map-canvas" style="height:400px;">
             </div>
         </div>
-    </div>
+    </div>*/
+?>
 
     <div class="col-md-12" style="display:none;">
         <div class="checkbox">
