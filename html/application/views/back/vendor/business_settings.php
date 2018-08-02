@@ -27,11 +27,20 @@
             $c2_secret =  $this->db->get_where('vendor', array('vendor_id' => $this->session->userdata('vendor_id')))->row()->c2_secret;
             $vp_set =  $this->db->get_where('vendor', array('vendor_id' => $this->session->userdata('vendor_id')))->row()->vp_set;
             $vp_merchant_id =  $this->db->get_where('vendor', array('vendor_id' => $this->session->userdata('vendor_id')))->row()->vp_merchant_id;
+            $pum_merchant_key= $this->db->get_where('vendor', array(
+                'vendor_id' => $this->session->userdata('vendor_id')
+            ))->row()->pum_merchant_key;
+            $pum_merchant_salt= $this->db->get_where('vendor', array(
+                'vendor_id' => $this->session->userdata('vendor_id')
+            ))->row()->pum_merchant_salt;
+            $pum_set    = $this->db->get_where('vendor', array(
+                'vendor_id' => $this->session->userdata('vendor_id')
+            ))->row()->pum_set;
         ?>
             <div class="col-sm-12">
             <div class="panel panel-bordered-dark">
                 <?php
-                    echo form_open(base_url() . 'index.php/vendor/business_settings/set/', array(
+                    echo form_open(base_url() . 'vendor/business_settings/set/', array(
                         'class'     => 'form-horizontal',
                         'method'    => 'post',
                         'id'        => 'gen_set',
@@ -129,6 +138,36 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label" for="demo-hor-inputemail">
+                                <?php echo translate('payUmoney_payment');?>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="col-sm-">
+                                    <input id="pum_set" class='sw10' data-set='pum_set' type="checkbox" <?php if($pum_set == 'ok'){ ?>checked<?php } ?> />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label" for="demo-hor-inputemail">
+                                <?php echo translate('payUmoney_merchant_key');?>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="col-sm-">
+                                    <input type="text" class="form-control" name="pum_merchant_key" value="<?php echo $pum_merchant_key;?>" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label" for="demo-hor-inputemail">
+                                <?php echo translate('payUmoney_merchant_salt');?>
+                            </label>
+                            <div class="col-sm-6">
+                                <div class="col-sm-">
+                                    <input type="text" class="form-control" name="pum_merchant_salt" value="<?php echo $pum_merchant_salt;?>" />
+                                </div>
+                            </div>
+                        </div>
                     <div class="panel-footer text-right">
                         <span class="btn btn-info submitter enterer" 
                             data-ing='<?php echo translate('saving'); ?>' data-msg='<?php echo translate('settings_updated!'); ?>' >
@@ -151,7 +190,7 @@
 	//var dlt_cont_func = 'delete_logo';
 
     function get_membership_info(id){
-        $('#mem_info').load('<?php echo base_url(); ?>index.php/vendor/business_settings/membership_info/'+id);
+        $('#mem_info').load('<?php echo base_url(); ?>vendor/business_settings/membership_info/'+id);
     }
 
 </script>

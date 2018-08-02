@@ -30,11 +30,13 @@
                 ?>
             </div>
             <?php } ?>
-            <span onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')">
-                <span class="icon-view" data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
-                    <strong><i class="fa fa-eye"></i></strong>
+            <div class="quick-view-sm hidden-xs hidden-sm">
+                <span onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')">
+                    <span class="icon-view" data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
+                        <strong><i class="fa fa-eye"></i></strong>
+                    </span>
                 </span>
-            </span>
+            </div>
         </div>
     </div>
     <div class="caption text-center">
@@ -51,9 +53,11 @@
                 <ins><?php echo currency($sale_price); ?></ins> 
             <?php }?>
         </div>
+        <?php if ($this->db->get_where('general_settings', array('general_settings_id' => '58'))->row()->value == 'ok' and $this->db->get_where('general_settings', array('general_settings_id' => '81'))->row()->value == 'ok'): ?>
         <div class="vendor">
             <?php echo $this->crud_model->product_by($product_id,'with_link'); ?>
         </div>
+        <?php endif ?>
         <div class="button">
             <span class="icon-view left" onclick="do_compare(<?php echo $product_id; ?>,event)" data-toggle="tooltip" 
             	data-original-title="<?php if($this->crud_model->is_compared($product_id)=="yes"){ echo translate('compared'); } else { echo translate('compare'); } ?>">

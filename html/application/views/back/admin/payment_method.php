@@ -25,7 +25,11 @@
     $c2_user =  $this->db->get_where('business_settings', array('type' =>'c2_user' ))->row()->value;
     $c2_secret =  $this->db->get_where('business_settings', array('type' => 'c2_secret' ))->row()->value;
     $c2_type= $this->db->get_where('business_settings', array('type' => 'c2_type'))->row()->value;
-    $vp_merchant_id= $this->db->get_where('business_settings', array('type' => 'vp_merchant_id'))->row()->value;            	
+    $vp_merchant_id= $this->db->get_where('business_settings', array('type' => 'vp_merchant_id'))->row()->value;
+
+    $merchant_key =  $this->db->get_where('business_settings', array('type' =>'pum_merchant_key' ))->row()->value;
+    $merchant_salt =  $this->db->get_where('business_settings', array('type' => 'pum_merchant_salt' ))->row()->value;
+    $pum_type= $this->db->get_where('business_settings', array('type' => 'pum_account_type'))->row()->value;       	
 ?>            
 <div id="content-container">
     <div id="page-title">
@@ -36,7 +40,7 @@
         </center>
     </div>
     <?php
-		echo form_open(base_url() . 'index.php/admin/business_settings/set1/', array(
+		echo form_open(base_url() . 'admin/business_settings/set1/', array(
 			'class'     => 'form-horizontal',
 			'method'    => 'post',
 			'id'        => 'gen_set',
@@ -140,7 +144,45 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                         <div class="col-md-6">
+                            <div class="panel">
+                                <div class="panel-heading bg-white">
+                                    <h4 class="panel-title"><?php echo translate('pay_u_money_settings')?></h4>
+                                </div>
+                    
+                                <!--Panel body-->
+                                <div class="panel-body">
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label"><?php echo translate('merchant_key');?></label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="merchant_key" value="<?php echo $merchant_key; ?>" class="form-control">
+                                        </div>
+                                    </div>
+        
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label"><?php echo translate('merchant_salt');?></label>
+                                        <div class="col-sm-8">
+                                            <input type="text" name="merchant_salt" value="<?php echo $merchant_salt; ?>" class="form-control">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="col-sm-3 control-label" for="demo-hor-inputemail">
+                                            <?php echo translate('account_type');?>
+                                        </label>
+                                        <div class="col-sm-8">
+                                            <?php
+                                                $from = array('sandbox','original');
+                                                echo $this->crud_model->select_html($from,'pum_account_type','','edit','demo-chosen-select',$pum_type);
+                                            ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="row">
+                       <div class="col-md-6">
                             <div class="panel">
                                 <div class="panel-heading bg-white">
                                     <h4 class="panel-title"><?php echo translate('voguePay_settings')?></h4>

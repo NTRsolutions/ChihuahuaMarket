@@ -1,7 +1,6 @@
 <section class="page-section invoice">
     <div class="container">
     	<?php
-			$success_msg="¡Orden exitosa!";
 			$sale_details = $this->db->get_where('sale',array('sale_id'=>$sale_id))->result_array();
 			foreach($sale_details as $row){
 		?>
@@ -13,10 +12,12 @@
                         	<?php
 								$home_top_logo = $this->db->get_where('ui_settings',array('type' => 'home_top_logo'))->row()->value;
 							?>
-							<h2><?php echo $success_msg;?></h2>
-							<img src="<?php echo base_url(); ?>uploads/logo_image/logo_<?php echo $home_top_logo; ?>.png" alt="SuperShop"/ width="200px">
+							<img src="<?php echo base_url(); ?>uploads/logo_image/logo_<?php echo $home_top_logo; ?>.png" alt="SuperShop" style="max-width: 350px; max-height: 80px;"/>
                         </div>
                         <div class="invoice_info">
+                            <?php if($invoice == "guest") {?>
+                            <p><b><?php echo translate('guest_id'); ?> # :</b><?php echo $row['guest_id']; ?></p>
+                            <?php }?>
                             <p><b><?php echo translate('invoice'); ?> # :</b><?php echo $row['sale_code']; ?></p>
                         </div>
                     </div>
@@ -144,6 +145,25 @@
                                             <td><?php echo $i; ?></td>
                                             <td class="text-center"><?php echo $row1['name']; ?></td>
                                             <td class="text-center">
+                                            <?php
+                                            if ($this->db->get_where('product', array('product_id' => $row1['id']))->row()->is_bundle == 'yes') {
+                                            ?>
+                                            <div style="padding: 5px">
+                                                <b><?php echo translate('products_:');?></b> <br>
+                                                <?php
+                                                    $products = $this->db->get_where('product', array('product_id' => $row1['id']))->row()->products;
+                                                    $products = json_decode($products, true);
+                                                    foreach ($products as $product) { ?>
+                                                        <a style="font-size: 12px;">
+                                                            <?php echo $this->db->get_where('product', array('product_id' => $product['product_id']))->row()->title . '<br>';?>
+                                                        </a>
+                                                <?php
+                                                    }
+                                                ?>
+                                            </div>
+                                            <?php
+                                            }
+                                            ?>
                                             <?php 
 												$option = json_decode($row1['option'],true);
 												foreach ($option as $l => $op) {
@@ -243,6 +263,9 @@
             	<span class="btn btn-info pull-right" onClick="print_invoice()">
 					<?php echo translate('print'); ?>
                	</span>
+                <?php if($invoice != "guest") {?>
+                <a class="btn btn-danger pull-right" href="<?=base_url()?>home/profile/part/order_history" style="margin-right: 5px;"><?php echo translate('back_to_profile'); ?></a>
+                <?php }?>
             </div>
         </div>
         <?php

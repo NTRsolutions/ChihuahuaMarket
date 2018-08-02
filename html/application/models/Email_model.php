@@ -167,6 +167,104 @@ class Email_model extends CI_Model
             return false;
         }
     }
+
+    function vendor_payment($vendor,$amount)
+    {
+        //$this->load->database();
+        $account_type = 'vendor';
+
+        $from_name  = $this->db->get_where('general_settings',array('type' => 'system_name'))->row()->value;
+        $protocol = $this->db->get_where('general_settings', array('type' => 'mail_status'))->row()->value;
+        if($protocol == 'smtp'){
+            $from = $this->db->get_where('general_settings',array('type' => 'smtp_user'))->row()->value;
+        }
+        else if($protocol == 'mail'){
+            $from = $this->db->get_where('general_settings', array('type' => 'system_email'))->row()->value;
+        }
+        
+        
+        $query = $this->db->get_where($account_type, array($account_type . '_id' => $vendor));
+        
+        if ($query->num_rows() > 0) {
+            $sub        = $this->db->get_where('email_template', array('email_template_id' => 3))->row()->subject;
+            $to         = $query->row()->email;
+            
+            $to_name    = $query->row()->name;
+            
+            $email_body      = $this->db->get_where('email_template', array('email_template_id' => 9))->row()->body;
+            $email_body      = str_replace('[[vendor_name]]',$vendor_name,$email_body);
+            $email_body      = str_replace('[[amount]]',$amount,$email_body);
+            $email_body      = str_replace('[[from]]',$from_name,$email_body);
+            
+            $background = $this->db->get_where('ui_settings',array('type' => 'email_theme_style'))->row()->value;
+            if($background !== 'style_1'){
+                $final_email = $this->db->get_where('ui_settings',array('type' => 'email_theme_'.$background))->row()->value;
+                $final_email = str_replace('[[body]]',$email_body,$final_email);
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $final_email);
+            } else {
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $email_body);
+            }
+            
+            return $send_mail;
+        }
+        else {
+            return false;
+        }
+    }
+
+    function membership_upgrade_email_to_admin($vendor)
+    {
+        //$this->load->database();
+        $account_type = 'vendor';
+
+        $from_name  = $this->db->get_where('general_settings',array('type' => 'system_name'))->row()->value;
+        $protocol = $this->db->get_where('general_settings', array('type' => 'mail_status'))->row()->value;
+        if($protocol == 'smtp'){
+            $from = $this->db->get_where('general_settings',array('type' => 'smtp_user'))->row()->value;
+        }
+        else if($protocol == 'mail'){
+            $from = $this->db->get_where('general_settings', array('type' => 'system_email'))->row()->value;
+        }
+        
+        
+        $query = $this->db->get_where($account_type, array($account_type . '_id' => $vendor));
+        
+        if ($query->num_rows() > 0) {
+            $sub        = $this->db->get_where('email_template', array('email_template_id' => 8))->row()->subject;
+            $to = $this->db->get_where('general_settings', array('type' => 'contact_email'))->row()->value;
+            
+            $vendor_name    = $query->row()->name;
+            
+            if($query->row()->membership == '0'){
+                $package    = "reduced to : Default";
+            } 
+            else {
+                $package    = "upgraded to : " . $this->db->get_where('membership',array('membership_id'=>$query->row()->membership))->row()->title;
+            }
+            $amount    =$this->db->get_where('membership',array('membership_id'=>$query->row()->membership))->row()->price;
+
+
+            $email_body      = str_replace('[[vendor_name]]', $vendor_name,$email_body);
+            $email_body      = str_replace('[[email]]',$email,$email_body);
+            $email_body      = str_replace('[[vendor_package]]',$package,$email_body);
+            $email_body      = str_replace('[[package_amount]]',$amount,$email_body);
+            $email_body      = str_replace('[[from]]',$from_name,$email_body);
+            
+            $background = $this->db->get_where('ui_settings',array('type' => 'email_theme_style'))->row()->value;
+            if($background !== 'style_1'){
+                $final_email = $this->db->get_where('ui_settings',array('type' => 'email_theme_'.$background))->row()->value;
+                $final_email = str_replace('[[body]]',$email_body,$final_email);
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $final_email);
+            } else {
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $email_body);
+            }
+            
+            return $send_mail;
+        }
+        else {
+            return false;
+        }
+    }
     
     function account_opening($account_type = '', $email = '', $pass = '')
     {
@@ -186,21 +284,21 @@ class Email_model extends CI_Model
         if ($query->num_rows() > 0) {
 			if($account_type == 'admin'){
                 $to_name    = $query->row()->name;
-                $url        = "<a href='".base_url()."index.php/admin/'>".base_url()."index.php/admin</a>";
+                $url        = "<a href='".base_url()."admin/'>".base_url()."admin</a>";
                 
                 $sub        = $this->db->get_where('email_template', array('email_template_id' => 6))->row()->subject;
                 $email_body      = $this->db->get_where('email_template', array('email_template_id' => 6))->row()->body;
 			}
 			if($account_type == 'vendor'){
 				$to_name	= $query->row()->name;
-				$url 		= "<a href='".base_url()."index.php/vendor/'>".base_url()."index.php/vendor</a>";
+				$url 		= "<a href='".base_url()."vendor/'>".base_url()."vendor</a>";
 				
                 $sub        = $this->db->get_where('email_template', array('email_template_id' => 4))->row()->subject;
 				$email_body = $this->db->get_where('email_template', array('email_template_id' => 4))->row()->body;
 			}
 			if($account_type == 'user'){
 				$to_name	= $query->row()->username;
-				$url 		= "<a href='".base_url()."index.php/home/login_set/login'>".base_url()."index.php/home/login_set/login</a>";
+				$url 		= "<a href='".base_url()."home/login_set/login'>".base_url()."home/login_set/login</a>";
 
                 $sub        = $this->db->get_where('email_template', array('email_template_id' => 5))->row()->subject;
 				$email_body      = $this->db->get_where('email_template', array('email_template_id' => 5))->row()->body;
@@ -234,6 +332,51 @@ class Email_model extends CI_Model
             return false;
         }
     }
+
+    function vendor_reg_email_to_admin($email = '', $pass = '')
+    {
+       //$this->load->database();
+        $from_name  = $this->db->get_where('general_settings',array('type' => 'system_name'))->row()->value;
+        $protocol = $this->db->get_where('general_settings', array('type' => 'mail_status'))->row()->value;
+        if($protocol == 'smtp'){
+            $from = $this->db->get_where('general_settings',array('type' => 'smtp_user'))->row()->value;
+        }
+        else if($protocol == 'mail'){
+            $from = $this->db->get_where('general_settings', array('type' => 'system_email'))->row()->value;
+        }
+
+            $query = $this->db->get_where('vendor', array('email' => $email));
+
+            
+            $vendor_name    = $query->row()->name;
+            $url        = "<a href='".base_url()."vendor/'>".base_url()."vendor</a>";
+            
+            $sub        = $this->db->get_where('email_template', array('email_template_id' => 7))->row()->subject;
+            $email_body = $this->db->get_where('email_template', array('email_template_id' => 7))->row()->body;
+            
+            
+            $email_body      = str_replace('[[vendor_name]]', $vendor_name,$email_body);
+            $email_body      = str_replace('[[email]]',$email,$email_body);
+            $email_body      = str_replace('[[from]]',$from_name,$email_body);
+            
+            $background = $this->db->get_where('ui_settings',array('type' => 'email_theme_style'))->row()->value;
+            if($background !== 'style_1'){
+                $final_email = $this->db->get_where('ui_settings',array('type' => 'email_theme_'.$background))->row()->value;
+                if($background == 'style_4'){
+                    $home_top_logo = $this->db->get_where('ui_settings',array('type' => 'home_top_logo'))->row()->value;
+                    $logo =base_url().'uploads/logo_image/logo_'.$home_top_logo.'.png';
+                    $final_email = str_replace('[[logo]]',$logo,$final_email);
+                }
+                $to=$this->db->get_where('general_settings', array('type' => 'contact_email'))->row()->value;
+                $final_email = str_replace('[[body]]',$email_body,$final_email);
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $final_email); // from = sytem/ smtp, to = contact er email
+            }else{
+                $send_mail  = $this->do_email($from,$from_name,$to, $sub, $email_body);
+            }
+
+            return $send_mail;
+
+    }
     
     
     
@@ -256,7 +399,14 @@ class Email_model extends CI_Model
         else if($protocol == 'mail'){
             $from   = $this->db->get_where('general_settings', array('type' => 'system_email'))->row()->value;
         }
-        $to         = $CI->crud_model->get_type_name_by_id('user', $CI->crud_model->get_type_name_by_id('sale', $sale_id, 'buyer'), 'email');
+        $is_guest = $this->db->get_where('sale', array('sale_id' => $sale_id))->row()->buyer;
+        if ($is_guest == "guest") {
+            $info = json_decode($this->db->get_where('sale', array('sale_id' => $sale_id))->row()->shipping_address,true);
+            $to =  $info['email'];   
+        }
+        else {
+            $to         = $CI->crud_model->get_type_name_by_id('user', $CI->crud_model->get_type_name_by_id('sale', $sale_id, 'buyer'), 'email');
+        }
         $subject    = '#'.$CI->crud_model->get_type_name_by_id('sale', $sale_id, 'sale_code');
         $page_data['sale_id'] = $sale_id;
         $msg        = $this->load->view('front/shopping_cart/invoice_email', $page_data, TRUE);

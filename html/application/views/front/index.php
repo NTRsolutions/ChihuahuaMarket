@@ -54,7 +54,7 @@
 
             <!-- CONTENT AREA -->
             <div class="content-area">
-                <?php 
+                <?php
                     include $page_name.'/index.php';
                 ?>                
             </div>

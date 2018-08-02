@@ -18,7 +18,7 @@
         <!-- Open Graph data -->
         <meta property="og:title" content="<?php echo $row['title']; ?>" />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content="<?php  echo base_url(); ?>index.php/home/product_view/<?php echo $row['product_id']; ?>" />
+        <meta property="og:url" content="<?php  echo base_url(); ?>home/product_view/<?php echo $row['product_id']; ?>" />
         <meta property="og:image" content="<?php echo $this->crud_model->file_view('product',$row['product_id'],'','','no','src','multi','one'); ?>" />
         <meta property="og:description" content="<?php echo str_replace('"',"'",strip_tags($row['description'])); ?>" />
         <meta property="og:site_name" content="<?php echo $row['title']; ?>" />

@@ -12,6 +12,8 @@
     <?php
         $sale_details = $this->db->get_where('sale',array('sale_id'=>$sale_id))->result_array();
         foreach($sale_details as $row){
+           $vat= $row['vat'];
+           $shipping=$row['shipping'];
     ?>
         <!--Invoice Header-->
         <tr>
@@ -20,7 +22,13 @@
             </td>
             <td>
                 <table>
+                    <?php if($invoice == "guest") {?>
+                        <tr><td><strong><?php echo translate('guest_id');?></strong> : <?php echo $row['guest_id']; ?> </td></tr>
+                    <?php }?>
                     <tr><td><strong><?php echo translate('invoice_no');?></strong> : <?php echo $row['sale_code']; ?> </td></tr>
+                    <?php if($invoice == "guest") {?>
+                        <tr><td><strong><?php echo translate('invoice_link');?></strong> : <?php echo base_url() ?>home/guest_invoice/<?php echo $row['guest_id']; ?> </td></tr>
+                    <?php }?>
                     <tr><td><strong><?php echo translate('date');?></strong> : <?php echo date('d M, Y',$row['sale_datetime'] );?></td></tr>
                 </table>
             </td>
@@ -83,8 +91,10 @@
                             <td style="padding: 5px;text-align:center;background:rgba(128, 128, 128, 0.18)"><?php echo $i; ?></td>
                             <td style="padding: 5px;text-align:center;background:rgba(128, 128, 128, 0.18)"><?php echo $row1['name']; ?></td>
                             <td style="padding: 5px;text-align:center;background:rgba(128, 128, 128, 0.18)"><?php echo $row1['qty']; ?></td>
-                            <td style="padding: 5px;text-align:center;background:rgba(128, 128, 128, 0.18)"><?php echo currency().$this->cart->format_number($row1['price']); ?></td>
-                            <td style="padding: 5px;text-align:right;background:rgba(128, 128, 128, 0.18)"><?php echo currency().$this->cart->format_number($row1['subtotal']); $total += $row1['subtotal']; ?></td>
+                            <td style="padding: 5px;text-align:center;background:rgba(128, 128, 128, 0.18)"><?php echo currency($row1['price']); ?></td>
+                            <td style="padding: 5px;text-align:right;background:rgba(128, 128, 128, 0.18)"><?php echo currency($row1['subtotal']); $total += $row1['subtotal']; ?></td>
+                            
+                           
                         </tr>
                     <?php
                         }
@@ -133,19 +143,19 @@
                  <table width="100%">
                     <tr>
                         <td style="text-align:right;padding:3px; width:80%; "><h3><?php echo translate('sub_total_amount');?> :</h3></td>
-                        <td style="text-align:right;padding:3px"><h3><?php echo currency().$this->cart->format_number($total);?></h3></td>
+                        <td style="text-align:right;padding:3px"><h3><?php echo currency($total);?></h3></td>
                     </tr>
                     <tr>
                         <td style="text-align:right;padding:3px; width:80%;"><h3><?php echo translate('tax');?> :</h3></td>
-                        <td style="text-align:right;padding:3px"><h3><?php echo currency().$this->cart->format_number($row['vat']);?></h3></td>
+                        <td style="text-align:right;padding:3px"><h3><?php echo currency($vat);?></h3></td>
                     </tr>
                     <tr>
                         <td style="text-align:right;padding:3px; width:80%;"><h3><?php echo translate('shipping');?> :</h3></td>
-                        <td style="text-align:right;padding:3px"><h3><?php echo currency().$this->cart->format_number($row['shipping']);?></h3></td>
+                        <td style="text-align:right;padding:3px"><h3><?php echo currency($shipping);?></h3></td>
                     </tr>
                     <tr>
                         <td style="text-align:right;padding:3px; width:80%;"><h2><?php echo translate('grand_total');?> :</h2></td>
-                        <td style="text-align:right;padding:3px"><h2><?php echo currency().$this->cart->format_number($row['grand_total']);?></h2></td>
+                        <td style="text-align:right;padding:3px"><h2><?php echo currency($row['grand_total']);?></h2></td>
                     </tr>
                  </table>
                

@@ -1,9 +1,9 @@
 <!-- Header top bar -->
 <div class="top-bar">
     <div class="container">
-        <div class="top-bar-left">
+        <!--div class="top-bar-left">
             <ul class="list-inline">
-                <!--li class="dropdown flags">
+                <li class="dropdown flags">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                         <?php
                             if($set_lang = $this->session->userdata('language')){} else {
@@ -20,7 +20,7 @@
                                 {
                             ?>
                                 <li <?php if($set_lang == $row['db_field']){ ?>class="active"<?php } ?> >
-                                    <a class="set_langs" data-href="<?php echo base_url(); ?>index.php/home/set_language/<?php echo $row['db_field']; ?>">
+                                    <a class="set_langs" data-href="<?php echo base_url(); ?>home/set_language/<?php echo $row['db_field']; ?>">
                                         <img src="<?php echo $this->crud_model->file_view('language_list',$row['language_list_id'],'','','no','src','','','.jpg') ?>" width="20px;" alt=""/>
                                         <?php echo $row['name']; ?>
                                         <?php if($set_lang == $row['db_field']){ ?>
@@ -52,7 +52,7 @@
                             {
                         ?>
                             <li <?php if($currency_id == $row['currency_settings_id']){ ?>class="active"<?php } ?> >
-                                <a class="set_langs" data-href="<?php echo base_url(); ?>index.php/home/set_currency/<?php echo $row['currency_settings_id']; ?>">
+                                <a class="set_langs" data-href="<?php echo base_url(); ?>home/set_currency/<?php echo $row['currency_settings_id']; ?>">
                                     <?php echo $row['name']; ?> (<?php echo $row['symbol']; ?>)
                                     <?php if($currency_id == $row['currency_settings_id']){ ?>
                                         <i class="fa fa-check"></i>
@@ -64,9 +64,16 @@
                         ?>
                     </ul>
 
-                </li-->
+                </li>
+                <?php if($this->crud_model->get_type_name_by_id('general_settings','83','value') == 'ok'){ ?>
+                    <li class="dropdown flags" style="z-index: 1001;">
+                        <a href="<?=base_url()?>home/premium_package" class="" >
+                            <i class="fa fa-gift"></i> <?php echo translate('premium_packages');?>
+                        </a>
+                    </li>
+                <?php } ?>
             </ul>
-        </div>
+        </div-->
         <div class="top-bar-right">
             ----- ----- -----
         </div>
@@ -91,7 +98,7 @@
             <!-- Header search -->
             <div class="header-search">                            
                 <?php
-                    echo form_open(base_url() . 'index.php/home/text_search/', array(
+                    echo form_open(base_url() . 'home/text_search/', array(
                         'method' => 'post'
                     ));
                 ?>
@@ -131,7 +138,7 @@
             <!-- Header shopping cart -->
             <div class="header-cart">
                 <div class="cart-wrapper">
-                    <a href="<?php echo base_url(); ?>index.php/home/compare" class="btn btn-theme-transparent" id="compare_tooltip" data-toggle="tooltip" data-original-title="<?php echo $this->crud_model->compared_num(); ?>" data-placement="right" >
+                    <!--a href="<?php echo base_url(); ?>home/compare" class="btn btn-theme-transparent" id="compare_tooltip" data-toggle="tooltip" data-original-title="<?php echo $this->crud_model->compared_num(); ?>" data-placement="right" >
                     	<i class="fa fa-exchange"></i>
 						<span class="hidden-sm hidden-xs"><?php echo translate('compare'); ?></span>
                         (
@@ -139,7 +146,7 @@
                             <?php echo $this->crud_model->compared_num(); ?>
                         </span>
                         )
-                    </a>
+                    </a-->
                     <a href="#" class="btn btn-theme-transparent" data-toggle="modal" data-target="#popup-cart">
                         <i class="fa fa-shopping-cart"></i> 
                         <span class="hidden-xs"> 
@@ -159,7 +166,7 @@
         </div>
     </div>
     <div class="navigation-wrapper">
-        <div class="container">
+        <div class="container-floaid">
             <!-- Navigation -->
             <?php
             	$others_list=$this->uri->segment(3);
@@ -168,14 +175,14 @@
                 <a href="#" class="menu-toggle-close btn"><i class="fa fa-times"></i></a>
                 <ul class="nav sf-menu">
                     <!--li <?php if($asset_page=='home'){ ?>class="active"<?php } ?>>
-                        <a href="<?php echo base_url(); ?>index.php/home">
+                        <a href="<?php echo base_url(); ?>home">
                             <?php echo translate('homepage');?>
                         </a>
                     </li-->
-                    <li class="hidden-sm hidden-xs <?php if($asset_page=='all_category'){ echo 'active'; } ?>">
-                        <!--a href="<?php echo base_url(); ?>index.php/home/all_category">
+                    <!--li class="hidden-sm hidden-xs <?php if($asset_page=='all_category'){ echo 'active'; } ?>">
+                        <a href="<?php echo base_url(); ?>home/all_category">
 							<?php echo translate('all_categories');?>
-                        </a-->
+                        </a>
                         <ul>
                         	<?php
 								$all_category = $this->db->get('category')->result_array();
@@ -184,7 +191,7 @@
 									if($this->crud_model->if_publishable_category($row['category_id'])){
 							?>
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/home/category/<?php echo $row['category_id']; ?>">
+                                <a href="<?php echo base_url(); ?>home/category/<?php echo $row['category_id']; ?>">
                                     <?php echo $row['category_name']; ?>
                                 </a>
                             </li>
@@ -193,7 +200,7 @@
 								}
 							?>
                         </ul>
-                    </li>
+                    </li-->
                     <li class="hidden-lg hidden-md <?php if($asset_page=='all_category'){ echo 'active'; } ?>">
                         <a href="#">
 							<?php echo translate('all_categories');?>
@@ -206,7 +213,7 @@
 									if($this->crud_model->if_publishable_category($row['category_id'])){
 							?>
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/home/category/<?php echo $row['category_id']; ?>">
+                                <a href="<?php echo base_url(); ?>home/category/<?php echo $row['category_id']; ?>">
                                     <?php echo $row['category_name']; ?>
                                 </a>
                             </li>
@@ -217,25 +224,36 @@
                         </ul>
                     </li>
                     <li class="hidden-lg hidden-md <?php if($asset_page=='all_category'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/all_category">
+                        <a href="<?php echo base_url(); ?>home/all_category">
                             <?php echo translate('all_sub_categories');?>
                         </a>
                     </li>
                     <li class="<?php if($others_list=='featured'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/others_product/featured">
+                        <a href="<?php echo base_url(); ?>home/others_product/featured">
                             <?php echo translate('featured_products');?>
                         </a>
                     </li>
                     <li class="<?php if($others_list=='todays_deal'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/others_product/todays_deal">
+                        <a href="<?php echo base_url(); ?>home/others_product/todays_deal">
                             <?php echo translate('todays_deal');?>
                         </a>
                     </li>
-                    <?php
-                    	if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
+                    <?php if($this->crud_model->get_type_name_by_id('general_settings','82','value') == 'ok'){ ?>
+                    <li <?php if($page_name=='bundled_product'){ ?>class="active"<?php } ?>>
+                        <a href="<?php echo base_url(); ?>home/bundled_product">
+                            <?php echo translate('bundled_product');?>
+                        </a>
+                    </li>
+                    <?php } if($this->crud_model->get_type_name_by_id('general_settings','83','value') == 'ok'){?>
+                    <li <?php if($page_name=='customer_products'){ ?>class="active"<?php } ?>>
+                        <a href="<?php echo base_url(); ?>home/customer_products">
+                            <?php echo translate('classifieds');?>
+                        </a>
+                    </li>
+                    <?php } if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
 					?>
                     <li class="<?php if($others_list=='latest'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/others_product/latest">
+                        <a href="<?php echo base_url(); ?>home/others_product/latest">
                             <?php echo translate('latest_products');?>
                         </a>
                     </li>
@@ -246,7 +264,7 @@
                     	if ($this->crud_model->get_type_name_by_id('general_settings','68','value') == 'ok') {
 					?>
                     <li <?php if($asset_page=='all_brands'){ ?>class="active"<?php } ?>>
-                        <a href="<?php echo base_url(); ?>index.php/home/all_brands/">
+                        <a href="<?php echo base_url(); ?>home/all_brands">
                             <?php echo translate('all_brands');?>
                         </a>
                     </li>
@@ -255,17 +273,18 @@
 					?>
                     <?php
                     	if ($this->crud_model->get_type_name_by_id('general_settings','58','value') == 'ok') {
+                            if ($this->crud_model->get_type_name_by_id('general_settings','81','value') == 'ok'){
 					?>
                     <li <?php if($asset_page=='all_vendor'){ ?>class="active"<?php } ?>>
-                        <a href="<?php echo base_url(); ?>index.php/home/all_vendor/">
+                        <a href="<?php echo base_url(); ?>home/all_vendor/">
                             <?php echo translate('all_vendors');?>
                         </a>
                     </li>
                     <?php
-						}
+						} }
 					?>
                     <li class="hidden-sm hidden-xs <?php if($asset_page=='blog'){ echo 'active'; } ?>">
-                        <a href="<?php echo base_url(); ?>index.php/home/blog">
+                        <a href="<?php echo base_url(); ?>home/blog">
                             <?php echo translate('blogs');?>
                         </a>
                         <ul>
@@ -274,7 +293,7 @@
 								foreach($blogs as $row){
 							?>
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/home/blog/<?php echo $row['blog_category_id']; ?>">
+                                <a href="<?php echo base_url(); ?>home/blog/<?php echo $row['blog_category_id']; ?>">
                                     <?php echo $row['name']; ?>
                                 </a>
                             </li>
@@ -293,7 +312,7 @@
 								foreach($blogs as $row){
 							?>
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/home/blog/<?php echo $row['blog_category_id']; ?>">
+                                <a href="<?php echo base_url(); ?>home/blog/<?php echo $row['blog_category_id']; ?>">
                                     <?php echo $row['name']; ?>
                                 </a>
                             </li>
@@ -303,10 +322,10 @@
                         </ul>
                     </li>
                     <?php
-                    	if ($this->crud_model->get_type_name_by_id('general_settings','58','value') == 'ok') {
+                    	if ($this->crud_model->get_type_name_by_id('general_settings','58','value') == 'ok' && $this->crud_model->get_type_name_by_id('general_settings','81','value') == 'ok') {
 					?>
                     <li <?php if($asset_page=='store_locator'){ ?>class="active"<?php } ?>>
-                        <a href="<?php echo base_url(); ?>index.php/home/store_locator">
+                        <a href="<?php echo base_url(); ?>home/store_locator">
                             <?php echo translate('store_locator');?>
                         </a>
                     </li>
@@ -314,7 +333,7 @@
 						}
 					?>
                     <li <?php if($asset_page=='contact'){ ?>class="active"<?php } ?>>
-                        <a href="<?php echo base_url(); ?>index.php/home/contact">
+                        <a href="<?php echo base_url(); ?>home/contact">
                             <?php echo translate('contact');?>
                         </a>
                     </li>
@@ -327,7 +346,7 @@
 								if ($this->crud_model->get_type_name_by_id('general_settings','58','value') == 'ok') {
 							?>
 							<li class="<?php if($others_list=='latest'){ echo 'active'; } ?>">
-								<a href="<?php echo base_url(); ?>index.php/home/others_product/latest">
+								<a href="<?php echo base_url(); ?>home/others_product/latest">
 									<?php echo translate('latest_products');?>
 								</a>
 							</li>
@@ -340,7 +359,7 @@
 							foreach($all_page as $row2){
 							?>
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/home/page/<?php echo $row2['parmalink']; ?>">
+                                <a href="<?php echo base_url(); ?>home/page/<?php echo $row2['parmalink']; ?>">
                                     <?php echo $row2['page_name']; ?>
                                 </a>
                             </li>
@@ -364,7 +383,7 @@
                 location.reload();
             }});
         });
-        $('.top-bar-right').load('<?php echo base_url(); ?>index.php/home/top_bar_right');
+        $('.top-bar-right').load('<?php echo base_url(); ?>home/top_bar_right');
     });
 </script>
 <style>

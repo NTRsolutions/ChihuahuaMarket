@@ -43,13 +43,24 @@
                     <div class="row">
                         <div class="col-lg-12 col-md-12 col-sm-12">
                             <div class="col-lg-6 col-md-6 col-sm-6 pad-all">
-                                <img class="img-responsive logo" src="<?php echo $this->crud_model->logo('home_top_logo'); ?>" alt="Active Super Shop" width="55%">
+                                <img class="img-responsive logo" src="<?php echo $this->crud_model->logo('home_top_logo'); ?>" alt="Active Super Shop" width="55%"><br><br>
+                                <?php if($row['buyer'] == 'guest'){?>
+                                <b class="pull-left">
+                                    <?php echo translate('invoice_link:');?> <?php echo base_url() ?>home/guest_invoice/<?php echo $row['guest_id']; ?>  
+                                </b>
                             </div>
                             <div class="col-lg-6 col-md-6 col-sm-6 pad-all">
+                                <?php if($row['buyer'] == 'guest'){?>
+                                <b class="pull-right">
+                                    <?php echo translate('guest_id:');?> :<?php echo $row['guest_id']; ?>  
+                                </b>
+                                <br>
+                                <?php }?>
                                 <b class="pull-right">
                                     <?php echo translate('invoice_no:');?> :<?php echo $row['sale_code']; ?>  
                                 </b>
                                 <br>
+                                <?php }?>
                                 <b class="pull-right">
                                     <?php echo translate('date_:');?> <?php echo date('d M, Y',$row['sale_datetime'] );?>
                                 </b>
@@ -145,6 +156,25 @@
                                             <td><?php echo $i; ?></td>
                                             <td><?php echo $row1['name']; ?></td>
                                             <td>
+                                                <?php
+                                                if ($this->db->get_where('product', array('product_id' => $row1['id']))->row()->is_bundle == 'yes') {
+                                                ?>
+                                                <div style="padding: 5px">
+                                                    <b><?php echo translate('products_:');?></b> <br>
+                                                    <?php
+                                                        $products = $this->db->get_where('product', array('product_id' => $row1['id']))->row()->products;
+                                                        $products = json_decode($products, true);
+                                                        foreach ($products as $product) { ?>
+                                                            <a style="font-size: 12px;">
+                                                                <?php echo $this->db->get_where('product', array('product_id' => $product['product_id']))->row()->title . '<br>';?>
+                                                            </a>
+                                                    <?php
+                                                        }
+                                                    ?>
+                                                </div>
+                                                <?php
+                                                }
+                                                ?>
                                                 <?php 
                                                     $all_o = json_decode($row1['option'],true);
                                                     $color = $all_o['color']['value'];

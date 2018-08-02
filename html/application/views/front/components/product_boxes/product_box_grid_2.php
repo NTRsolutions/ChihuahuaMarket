@@ -30,22 +30,23 @@
                     ?>
                 </div>
             <?php } ?>
-
-            <span onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')">
-                <span class="icon-view left" data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
-                    <strong><i class="fa fa-eye"></i></strong>
+            <div class="quick-view-sm hidden-xs hidden-sm">
+                <span onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')">
+                    <span class="icon-view left" data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
+                        <strong><i class="fa fa-eye"></i></strong>
+                    </span>
                 </span>
-            </span>
-            <span class="icon-view middle" data-toggle="tooltip" 
-            	data-original-title="<?php if($this->crud_model->is_compared($product_id)=="yes"){ echo translate('compared'); } else { echo translate('compare'); } ?>"
-                	onclick="do_compare(<?php echo $product_id; ?>,event)">
-                <strong><i class="fa fa-exchange"></i></strong>
-            </span>
-            <span class="icon-view right" data-toggle="tooltip" 
-            	data-original-title="<?php if($this->crud_model->is_wished($product_id)=="yes"){ echo translate('added_to_wishlist'); } else { echo translate('add_to_wishlist'); } ?>"
-            		onclick="to_wishlist(<?php echo $product_id; ?>,event)">
-                <strong><i class="fa fa-heart"></i></strong>
-            </span>
+                <span class="icon-view middle" data-toggle="tooltip" 
+                    data-original-title="<?php if($this->crud_model->is_compared($product_id)=="yes"){ echo translate('compared'); } else { echo translate('compare'); } ?>"
+                        onclick="do_compare(<?php echo $product_id; ?>,event)">
+                    <strong><i class="fa fa-exchange"></i></strong>
+                </span>
+                <span class="icon-view right" data-toggle="tooltip" 
+                    data-original-title="<?php if($this->crud_model->is_wished($product_id)=="yes"){ echo translate('added_to_wishlist'); } else { echo translate('add_to_wishlist'); } ?>"
+                        onclick="to_wishlist(<?php echo $product_id; ?>,event)">
+                    <strong><i class="fa fa-heart"></i></strong>
+                </span>  
+            </div>
         </div>
     </div>
     <div class="caption text-center">
@@ -62,16 +63,42 @@
                 <ins><?php echo currency($sale_price); ?></ins> 
             <?php }?>
         </div>
-        <div class="vendor">
-            <?php echo $this->crud_model->product_by($product_id,'with_link'); ?>
-        </div>
+            <?php if ($this->db->get_where('general_settings', array('general_settings_id' => '58'))->row()->value == 'ok'and $this->db->get_where('general_settings', array('general_settings_id' => '81'))->row()->value == 'ok'): ?>
+            <div class="vendor">
+                <?php echo $this->crud_model->product_by($product_id,'with_link'); ?>
+            </div>
+        <?php endif ?>
         <div class="cart">
             <span class="btn btn-block btn-theme btn-icon-left" data-toggle="tooltip" 
             	data-original-title="<?php if($this->crud_model->is_added_to_cart($product_id)){ echo translate('added_to_cart'); } else { echo translate('add_to_cart'); } ?>" 
             		data-placement="left"
-                 		onclick="to_cart(<?php echo $product_id; ?>,event)" >
-                    		<i class="fa fa-shopping-cart"></i>
+                 		onclick="to_cart(<?php echo $product_id; ?>,event)" style="padding: 5px">
+                    		<i class="fa fa-shopping-cart"></i> 
             </span>
         </div>
     </div>
 </div>
+<!-- <style>
+    /* xs */
+    .quick-view-sm {
+        display: none;
+    }
+    /* sm */
+    @media (min-width: 768px) {
+        .quick-view-sm {
+            display: none;
+        }
+    }
+    /* md */
+    @media (min-width: 992px) {
+        .quick-view-sm {
+           display: block; 
+        }
+    }
+    /* lg */
+    @media (min-width: 1200px) {
+        .quick-view-sm {
+            display: block;
+        }
+    }
+</style> -->

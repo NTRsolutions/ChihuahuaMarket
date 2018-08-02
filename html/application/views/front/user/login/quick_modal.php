@@ -2,7 +2,7 @@
     <div class="row get_into" id="login">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
             <?php
-                echo form_open(base_url() . 'index.php/home/login/do_login/', array(
+                echo form_open(base_url() . 'home/login/do_login/', array(
                     'class' => 'form-login',
                     'method' => 'post',
                     'id' => ''
@@ -15,7 +15,7 @@
                         <?php echo translate('sign_in');?>
                         <div class="option">
                             <?php echo translate('not_a_member_yet_?');?>
-                            <a href="<?php echo base_url(); ?>index.php/home/login_set/registration"> 
+                            <a href="<?php echo base_url(); ?>home/login_set/registration"> 
                                 <?php echo translate('sign_up_now!');?>
                             </a>
                         </div>
@@ -32,16 +32,23 @@
                         </div>
                     </div>
                     
-                    <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 text-right pull-right">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-right pull-right">
                         <span class="forgot-password" style="cursor:pointer;" onClick="set_html('login','forget')">
                             <?php echo translate('forget_your_password_?');?>
                         </span>
                     </div>
-                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                    <div class="<?php if ($page == 'guest_checkout') {?>col-lg-6 col-md-6 col-sm-6 col-xs-6<?php } else {?>col-lg-12 col-md-12 col-sm-12 col-xs-12<?php } ?>">
                         <span class="btn btn-theme-sm btn-block btn-theme-dark pull-right login_btn snbtn">
                             <?php echo translate('login');?>
                         </span>
                     </div>
+                    <?php if ($page == 'guest_checkout') {?>
+                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6">
+                        <span class="btn btn-theme-sm btn-block btn-theme-dark pull-right guest_btn">
+                            <?php echo translate('guest_checkout');?>
+                        </span>
+                    </div>
+                    <?php } ?>
                     <?php if($fb_login_set == 'ok' || $g_login_set == 'ok'){ ?>
                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                             <h2 class="login_divider"><span>or</span></h2>
@@ -86,7 +93,7 @@
     <div class="row" id="forget" style="display:none">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
             <?php
-                echo form_open(base_url() . 'index.php/home/login/forget/', array(
+                echo form_open(base_url() . 'home/login/forget/', array(
                     'class' => 'form-login',
                     'method' => 'post',
                     'id' => 'forget_form'
@@ -122,6 +129,11 @@ function checkKeyPressed(e) {
 		$('.snbtn').click();
 	}
 }
+$('.guest_btn').click(
+    function(){
+        load_orders();
+        $('.closeModal').click();
+});
 </script>
 <style>
 .g-icon-bg {

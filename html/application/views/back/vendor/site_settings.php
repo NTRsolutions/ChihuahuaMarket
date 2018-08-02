@@ -27,7 +27,7 @@
                                     <h3 class="panel-title"><?php echo translate('select_images');?></h3>
                                 </div>
                             <?php
-                                echo form_open(base_url() . 'index.php/vendor/vendor_images/', array(
+                                echo form_open(base_url() . 'vendor/vendor_images/', array(
                                     'class' => 'form-horizontal',
                                     'method' => 'post',
                                     'id' => '',
@@ -38,7 +38,11 @@
                                     <label class="col-sm-3 control-label margin-top-10" for="demo-hor-inputemail"><h5><?php echo translate('logo');?></h5> <br><i>(<?php echo translate('suggested_width');?>:<?php echo translate('height');?> - 300px:300px*)</i></label>
                                     <div class="col-sm-9">
                                         <div class="col-sm-2">
+                                            <?php if(file_exists('uploads/vendor_logo_image/logo_'.$this->session->userdata('vendor_id').'.png')){?>
                                             <img class="img-responsive img-md img-border" src="<?php echo base_url(); ?>uploads/vendor_logo_image/logo_<?php echo $this->session->userdata('vendor_id'); ?>.png" id="blah" style="width:auto !important;" >
+                                            <?php }else{ ?>
+                                            <img class="img-responsive img-md img-border" src="<?php echo base_url(); ?>uploads/vendor_logo_image/default.jpg" id="blah" style="width:auto !important;" >
+                                        <?php }?>
                                         </div>
                                         <div class="col-sm-2">
                                         <span class="pull-left btn btn-default btn-file margin-top-10">
@@ -57,7 +61,11 @@
                                     </label>
                                     <div class="col-sm-9">
                                         <div class="col-sm-12">
+                                             <?php if(file_exists('uploads/vendor_banner_image/banner_'.$this->session->userdata('vendor_id').'.jpg')){?>
                                             <img class="img-responsive img-lg img-border" src="<?php echo base_url(); ?>uploads/vendor_banner_image/banner_<?php echo $this->session->userdata('vendor_id'); ?>.jpg" id="blahn" style="width:auto !important; height:320px;">
+                                             <?php }else{ ?>
+                                             <img class="img-responsive img-lg img-border" src="<?php echo base_url(); ?>uploads/vendor_banner_image/default.jpg" id="blahn" style="width:auto !important; height:320px;">
+                                             <?php }?>
                                         </div>
                                         <div class="col-sm-6">
                                         <span class="pull-left btn btn-default btn-file margin-top-10">
@@ -86,7 +94,7 @@
                                 <h3 class="panel-title"><?php echo translate('social_links');?></h3>
                             </div>
 							<?php
-                                echo form_open(base_url() . 'index.php/vendor/social_links/set/', array(
+                                echo form_open(base_url() . 'vendor/social_links/set/', array(
                                     'class' => 'form-horizontal',
                                     'method' => 'post',
                                     'id' => '',
@@ -194,7 +202,7 @@
                                 $keywords =  $this->db->get_where('vendor',array('vendor_id' => $this->session->userdata('vendor_id')))->row()->keywords;
                             ?>
 							<?php
-                                echo form_open(base_url() . 'index.php/vendor/seo_settings/set', array(
+                                echo form_open(base_url() . 'vendor/seo_settings/set', array(
                                     'class' => 'form-horizontal',
                                     'method' => 'post',
                                     'id' => '',

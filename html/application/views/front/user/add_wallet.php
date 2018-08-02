@@ -2,7 +2,7 @@
     <div class="row get_into" id="login">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
             <?php
-                echo form_open(base_url() . 'index.php/home/profile/wallet/add', array(
+                echo form_open(base_url() . 'home/profile/wallet/add', array(
                     'class' => 'form-login',
                     'method' => 'post',
                     'id' => 'wallet_add'
@@ -10,11 +10,15 @@
                 $system_title = $this->db->get_where('general_settings',array('type' => 'system_title'))->row()->value;
                 $payment_methods = array();
                 $p_set = $this->db->get_where('business_settings',array('type'=>'paypal_set'))->row()->value; 
+                $pum_set = $this->db->get_where('business_settings',array('type'=>'pum_set'))->row()->value; 
                 $s_set = $this->db->get_where('business_settings',array('type'=>'stripe_set'))->row()->value;
                 $c2_set = $this->db->get_where('business_settings',array('type'=>'c2_set'))->row()->value; 
                 $vp_set = $this->db->get_where('business_settings',array('type'=>'vp_set'))->row()->value; 
                 if($p_set == 'ok'){
                     $payment_methods['paypal'] = 'Paypal';
+                }
+                if($pum_set == 'ok'){
+                    $payment_methods['pum'] = 'Pay U Money';
                 }
                 if($s_set == 'ok'){
                     $payment_methods['stripe']='Stripe';
@@ -75,7 +79,7 @@
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="form-group">
-                            <input class="form-control" id="wallet_amount" type="number" name="amount" placeholder="<?php echo translate('amount');?> (<?php echo currency('','def'); ?>)">
+                            <input required="" class="form-control" id="wallet_amount" type="number" name="amount" placeholder="<?php echo translate('amount');?> (<?php echo currency('','def'); ?>)">
                         </div>
                     </div>
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">

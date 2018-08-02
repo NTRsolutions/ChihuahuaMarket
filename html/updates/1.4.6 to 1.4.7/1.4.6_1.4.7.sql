@@ -1,1 +1,0 @@
-INSERT INTO `general_settings` (`type`, `value`) VALUES ('version', '1.4.7');

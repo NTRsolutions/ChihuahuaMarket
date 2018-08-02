@@ -12,7 +12,7 @@ $config['googleplus']['api_key'] = $CI->db->get_where('general_settings',array('
 $config['googleplus']['application_name'] = 'Super Shop';
 $config['googleplus']['client_id'] 	= '878887909081-m50hquiaehb24gkimro8ignmvc44lgt2.apps.googleusercontent.com';
 $config['googleplus']['client_secret'] = 'iNQkQgsYHSWRi0tX6nTu8AFg';
-$config['googleplus']['redirect_uri'] = 'http://localhost/active_supershop/index.php/home/login_set';
+$config['googleplus']['redirect_uri'] = 'http://localhost/active_supershop/home/login_set';
 $config['googleplus']['api_key'] = 'AIzaSyAQW5Gqx-hFeL-oWEyiXXFyV-GTznk3wsc';
 */
 ?>

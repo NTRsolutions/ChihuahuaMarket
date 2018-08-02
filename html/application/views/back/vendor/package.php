@@ -10,7 +10,7 @@
                     $membership    = $this->db->get_where('vendor', array(
                         'vendor_id' => $this->session->userdata('vendor_id')
                     ))->row()->membership;
-                    echo form_open(base_url() . 'index.php/vendor/package/upgrade/', array(
+                    echo form_open(base_url() . 'vendor/package/upgrade/', array(
                         'class'     => 'form-horizontal',
                         'method'    => 'post',
                         'id'        => 'upgrade_form',
@@ -69,6 +69,8 @@
                                     <option value="c2" >Twocheckout</option>
                                 <?php }if($this->db->get_where('business_settings',array('type'=>'vp_set'))->row()->value == 'ok'){ ?>
                                     <option value="vp" >VoguePay</option>
+                                <?php } if($this->db->get_where('business_settings',array('type'=>'pum_set'))->row()->value == 'ok'){?>
+                                <option value="pum" >PayUmoney</option>
                                 <?php } ?>
                                     <option value="cash" >Cash</option>
                                 </select>
@@ -104,9 +106,11 @@
                                 var typea = $('#type').val();
                                 if(type == 'stripe'){
                                     $.ajax({
-                                        url: "<?php echo base_url(); ?>index.php/vendor/business_settings/membership_price/"+typea, 
+                                        url: "<?php echo base_url(); ?>vendor/business_settings/membership_price/"+typea, 
                                         success: function(total){
-                                            total = total/parseFloat(<?php echo $this->crud_model->get_type_name_by_id('business_settings', '8', 'value'); ?>);
+                                            total = total.replace("<?php echo currency(); ?>", '');
+                                            //total = parseFloat(total.replace(",", ''));
+                                            total = total/parseFloat(<?php echo exchange(); ?>);
                                             total = total*100;
                                             handler.open({
                                                 name: '<?php echo $system_title; ?>',
@@ -143,7 +147,7 @@
 	var dlt_cont_func = '';
 
     function get_membership_info(id){
-        $('#mem_info').load('<?php echo base_url(); ?>index.php/vendor/business_settings/membership_info/'+id);
+        $('#mem_info').load('<?php echo base_url(); ?>vendor/business_settings/membership_info/'+id);
     }
     $(document).ready(function(){
 		get_membership_info(<?php echo $membership; ?>);

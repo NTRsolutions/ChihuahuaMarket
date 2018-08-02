@@ -11,7 +11,19 @@
        	</div>             
     </div>
 </section>
-
+<section class="page-section brands">
+ <div class="container">
+        <h2 class="section-title">
+            <span><?php echo translate('about').' '.$this->crud_model->get_type_name_by_id('vendor',$vendor_id,'display_name');?></span>
+        </h2>
+        <div class="partners-carousel">
+             <p>
+                 <?php echo $this->crud_model->get_type_name_by_id('vendor',$vendor_id,'details');?>
+             </p>
+             
+        </div>
+    </div>
+</section>
 <!-- PAGE WITH SIDEBAR -->
 <section class="page-section">
 	<div class="container">
@@ -23,7 +35,7 @@
 				?>
 				<!-- /shop-sorting -->
 				<?php include 'category.php'; ?>
-
+				<?php include 'brands.php'; ?>
 			</div>
 			<!-- /CONTENT -->
 		</div>
@@ -37,7 +49,7 @@ $(document).ready(function(){
 function get_slider(){
 	var id = $('#vendor_id').val();
 	$('#slider').load(
-		"<?php echo base_url()?>index.php/home/vendor_profile/get_slider/"+id,
+		"<?php echo base_url()?>home/vendor_profile/get_slider/"+id,
 		function(){
 			var mainSliderSizeNew = $('#main-slider').find('.item').size();
             $('#main-slider').owlCarousel({
@@ -65,3 +77,29 @@ function get_slider(){
 	);
 }
 </script>
+<style>
+	.social-icons a.facebook:hover {
+	    background-color: #3b5998 !important;
+	    color: #ffffff;
+	}
+	.social-icons a.twitter:hover {
+	    background-color: #1da1f2 !important;
+	    color: #ffffff;
+	}
+	.social-icons a.google:hover {
+	    background-color: #dd4c40 !important;
+	    color: #ffffff;
+	}
+	.social-icons a.pinterest:hover {
+	    background-color: #bd081c !important;
+	    color: #ffffff;
+	}
+	.social-icons a.youtube:hover {
+	    background-color: #ff0000 !important;
+	    color: #ffffff;
+	}
+	.social-icons a.skype:hover {
+	    background-color: #1686D9 !important;
+	    color: #ffffff;
+	}
+</style>

@@ -245,25 +245,35 @@ class Crud_model extends CI_Model
     function product_link($product_id,$quick='')
     {
 		if($quick=='quick'){
-			return base_url() . 'index.php/home/quick_view/' . $product_id;
+			return base_url() . 'home/quick_view/' . $product_id;
 		} else {
 			$name = url_title($this->crud_model->get_type_name_by_id('product', $product_id, 'title'));
-        	return base_url() . 'index.php/home/product_view/' . $product_id . '/' . $name;
+        	return base_url() . 'home/product_view/' . $product_id . '/' . $name;
 		}
+    }
+
+    function customer_product_link($customer_product_id,$quick='')
+    {
+        if($quick=='quick'){
+            return base_url() . 'home/quick_view_cp/' . $customer_product_id;
+        } else {
+            $name = url_title($this->crud_model->get_type_name_by_id('customer_product', $customer_product_id, 'title'));
+            return base_url() . 'home/customer_product_view/' . $customer_product_id . '/' . $name;
+        }
     }
     
     //GET PRODUCT LINK
     function blog_link($blog_id)
     {
 		$name = url_title($this->crud_model->get_type_name_by_id('blog', $blog_id, 'title'));
-		return base_url() . 'index.php/home/blog_view/' . $blog_id . '/' . $name;
+		return base_url() . 'home/blog_view/' . $blog_id . '/' . $name;
     }
 
     //GET PRODUCT LINK
     function vendor_link($vendor_id)
     {
         $name = url_title($this->crud_model->get_type_name_by_id('vendor', $vendor_id, 'display_name'));
-        return base_url() . 'index.php/home/vendor_profile/' . $vendor_id . '/' . $name;
+        return base_url() . 'home/vendor_profile/' . $vendor_id . '/' . $name;
     }
 
     /////////GET CHOICE TITLE////////
@@ -280,7 +290,7 @@ class Crud_model extends CI_Model
     }
 
     /////////SELECT HTML/////////////
-    function select_html($from, $name, $field, $type, $class, $e_match = '', $condition = '', $c_match = '', $onchange = '',$condition_type='single')
+    function select_html($from, $name, $field, $type, $class, $e_match = '', $condition = '', $c_match = '', $onchange = '',$condition_type='single', $is_none = '')
     {
         $return = '';
         $other  = '';
@@ -302,17 +312,21 @@ class Crud_model extends CI_Model
             if ($condition == '') {
                 $all = $this->db->get($from)->result_array();
             } else if ($condition !== '') {
-				if($condition_type=='single'){
-					$all = $this->db->get_where($from, array(
-						$condition => $c_match
-					))->result_array();
-				}else if($condition_type=='multi'){
-					$this->db->where_in($condition,$c_match);
-					$all = $this->db->get($from)->result_array();
-				}
+                if($condition_type=='single'){
+                    $all = $this->db->get_where($from, array(
+                        $condition => $c_match
+                    ))->result_array();
+                }else if($condition_type=='multi'){
+                    $this->db->where_in($condition,$c_match);
+                    $all = $this->db->get($from)->result_array();
+                }
             }
-            
-            $return .= '<option value="">Choose one</option>';
+            if ($is_none == 'none') {
+                $return .= '<option value="">Choose one</option>
+                            <option value="none">None/All Brands</option>';
+            } else {
+                $return .= '<option value="">Choose one</option>';
+            }
             
             foreach ($all as $row):
                 if ($type == 'add') {
@@ -333,7 +347,100 @@ class Crud_model extends CI_Model
             endforeach;
         } else {
             $all = $from;
-            $return .= '<option value="">Choose one</option>';
+            if ($is_none == 'none') {
+                $return .= '<option value="">Choose one</option>
+                            <option value="none">None/All Brands</option>';
+            } else {
+                $return .= '<option value="">Choose one</option>';
+            }
+            foreach ($all as $row):
+                if ($type == 'add') {
+                    $return .= '<option value="' . $row . '">';
+                    if ($condition == '') {
+                        $return .= ucfirst(str_replace('_', ' ', $row));
+                    } else {
+                        $return .= $this->crud_model->get_type_name_by_id($condition, $row, $c_match);
+                    }
+                    $return .= '</option>';
+                } else if ($type == 'edit') {
+                    $return .= '<option value="' . $row . '" ';
+                    if ($row == $e_match) {
+                        $return .= 'selected=."selected"';
+                    }
+                    $return .= '>';
+                    
+                    if ($condition == '') {
+                        $return .= ucfirst(str_replace('_', ' ', $row));
+                    } else {
+                        $return .= $this->crud_model->get_type_name_by_id($condition, $row, $c_match);
+                    }
+                    
+                    $return .= '</option>';
+                }
+            endforeach;
+        }
+        $return .= '</select>';
+        return $return;
+    }
+
+    function select_html2($from, $name, $field, $type, $class, $e_match = '', $condition = '', $c_match = '', $onchange = '',$condition_type='single',$default_text='Choose one', $is_val = '')
+    {
+        $return = '';
+        $other  = '';
+        $multi  = 'no';
+        $phrase = 'Choose a ' . $name;
+        if ($class == 'demo-cs-multiselect') {
+            $other = 'multiple';
+            $name  = $name . '[]';
+            if ($type == 'edit') {
+                $e_match = json_decode($e_match);
+                if ($e_match == NULL) {
+                    $e_match = array();
+                }
+                $multi = 'yes';
+            }
+        }
+        if ($onchange == '0') {
+            $return = '<select name="' . $name . '" class="' . $class . '" ' . $other . '  data-placeholder="' . $phrase . '" tabindex="2" data-hide-disabled="true" >';
+        } else {
+            $return = '<select name="' . $name . '" onChange="' . $onchange . '(this.value,this)" class="' . $class . '" ' . $other . '  data-placeholder="' . $phrase . '" tabindex="2" data-hide-disabled="true" >';
+        }
+        if (!is_array($from)) {
+            if ($condition == '') {
+                $all = $this->db->get($from)->result_array();
+            } else if ($condition !== '') {
+                if($condition_type=='single'){
+                    $all = $this->db->get_where($from, array(
+                        $condition => $c_match
+                    ))->result_array();
+                }else if($condition_type=='multi'){
+                    $this->db->where_in($condition,$c_match);
+                    $all = $this->db->get($from)->result_array();
+                }
+            }
+            
+            $return .= '<option value="'.$is_val.'">'.$default_text.'</option>';
+            
+            foreach ($all as $row):
+                if ($type == 'add') {
+                    $return .= '<option value="' . $row[$from . '_id'] . '">' . $row[$field] . '</option>';
+                } else if ($type == 'edit') {
+                    $return .= '<option value="' . $row[$from . '_id'] . '" ';
+                    if ($multi == 'no') {
+                        if ($row[$from . '_id'] == $e_match) {
+                            $return .= 'selected=."selected"';
+                        }
+                    } else if ($multi == 'yes') {
+                        if (in_array($row[$from . '_id'], $e_match)) {
+                            $return .= 'selected=."selected"';
+                        }
+                    }
+                    $return .= '>' . $row[$field] . '</option>';
+                }
+            endforeach;
+        } else {
+            $all = $from;
+            $return .= '<option value="'.$is_val.'">'.$default_text.'</option>';
             foreach ($all as $row):
                 if ($type == 'add') {
                     $return .= '<option value="' . $row . '">';
@@ -521,6 +628,24 @@ class Crud_model extends CI_Model
 				);
 			}
 		}
+        return $final;
+    }
+
+    function get_customer_additional_fields($customer_product_id)
+    {
+        $additional_fields = $this->crud_model->get_type_name_by_id('customer_product', $customer_product_id, 'additional_fields');
+        $ab                = json_decode($additional_fields,true);
+        $name = json_decode($ab['name']);
+        $value = json_decode($ab['value']);
+        $final = array();
+        if(!empty($name)){
+            foreach ($name as $n => $row) {
+                $final[] = array(
+                    'name' => $row,
+                    'value' => $value[$n]
+                );
+            }
+        }
         return $final;
     }
     
@@ -772,6 +897,7 @@ class Crud_model extends CI_Model
         }
         return number_format((float) $number, 2, '.', '');
     }
+
     
     //GETTING SHIPPING COST
     function get_shipping_cost($product_id)
@@ -1253,6 +1379,14 @@ class Crud_model extends CI_Model
 		}
 		return $result;
 	}
+    function vendor_products_by_cat($vendor,$category){
+        $products = $this->db->from('product')->where('added_by', '{"type":"vendor","id":"'.$vendor.'"}')->where('category',$category)->where('status','ok')->get()->result_array();
+        return $products;
+    }
+    function get_vendor_brands($vendor){
+        $brands = $this->db->select('brand')->from('product')->where('added_by', '{"type":"vendor","id":"'.$vendor.'"}')->where('status','ok')->get()->result_array();
+        return $brands;
+    }
 	function vendor_products_by_sub($vendor,$sub_category){
 		$products = $this->db->get_where('product',array('sub_category'=>$sub_category))->result_array();
 		$result = array();
@@ -1282,7 +1416,7 @@ class Crud_model extends CI_Model
     function can_add_product($vendor){
         $membership = $this->db->get_where('vendor',array('vendor_id'=>$vendor))->row()->membership;
         $expire = $this->db->get_where('vendor',array('vendor_id'=>$vendor))->row()->member_expire_timestamp;
-        $already = $this->db->get_where('product',array('added_by'=>'{"type":"vendor","id":"'.$vendor.'"}','status'=>'ok'))->num_rows();
+        $already = $this->db->get_where('product',array('added_by'=>'{"type":"vendor","id":"'.$vendor.'"}'))->num_rows();
         if($membership == '0'){
             $max = $this->db->get_where('general_settings',array('type'=>'default_member_product_limit'))->row()->value;
         } else {
@@ -1390,6 +1524,7 @@ class Crud_model extends CI_Model
                     $this->db->update('vendor', $data);
                     $this->set_product_publishability($row['vendor_id']);
                     $this->email_model->membership_upgrade_email($row['vendor_id']);
+                    $this->email_model->membership_upgrade_email_to_admin($row['vendor_id']);
                 }
             }
         } 
@@ -1408,6 +1543,7 @@ class Crud_model extends CI_Model
         $this->db->where('vendor_id', $vendor);
         $this->db->update('vendor', $data);
         $this->email_model->membership_upgrade_email($vendor);
+        $this->email_model->membership_upgrade_email_to_admin($row['vendor_id']);
     }
     
     //GETTING ADMIN PERMISSION
@@ -1678,7 +1814,6 @@ class Crud_model extends CI_Model
         return 'yes';
     }
     
-    
     //GETTING IP DATA OF PEOPLE BROWING THE SYSTEM
     function ip_data()
     {
@@ -1909,6 +2044,36 @@ class Crud_model extends CI_Model
         }
     }
 
+    /* FUNCTION: Price Range Load by AJAX*/
+    function get_range_lvl_cproduct($by = "", $id = "", $type = "")
+    {
+        $physical= $this->crud_model->get_settings_value('general_settings','physical_product_activation');
+        $digital= $this->crud_model->get_settings_value('general_settings','digital_product_activation');
+        $vendor= $this->crud_model->get_settings_value('general_settings','vendor_system');
+        if ($type == "min") {
+            $set = 'asc';
+        } elseif ($type == "max") {
+            $set = 'desc';
+        }
+        $this->db->limit(1);
+        if($physical == 'ok' && $digital !== 'ok') {
+            $this->db->where('download',NULL);
+        }
+        if($physical !== 'ok' &&$digital == 'ok'){
+            $this->db->where('download','ok');
+        }
+        $this->db->order_by('sale_price', $set);
+        if (count($a = $this->db->get_where('customer_product', array(
+            $by => $id, 'status' => 'ok'
+        ))->result_array()) > 0) {
+            foreach ($a as $r) {
+                return $r['sale_price'];
+            }
+        } else {
+            return 0;
+        }
+    }
+
     /* FUNCTION: Regarding Digital*/
     function is_digital($id){
         if($this->db->get_where('product',array('product_id'=>$id))->row()->download == 'ok'){
@@ -2096,7 +2261,7 @@ class Crud_model extends CI_Model
 
         $url = url_title($cat.'-'.$cat_name.'-'.$scat.'-'.$scat_name.'-'.$brand.'-'.$brand_name);
 
-        return base_url() . 'index.php/home/' . $url;
+        return base_url() . 'home/' . $url;
     }
 	
 	function product_list_set($speciality,$limit,$id=''){
@@ -2141,9 +2306,13 @@ class Crud_model extends CI_Model
 		if($speciality == 'featured'){
 			$this->db->where('featured','ok');
 		}
+
+        if($speciality == 'bundle'){
+            $this->db->where('is_bundle','yes');
+        }
 		
 		if($speciality == 'vendor_featured'){
-			$this->db->where('featured','ok');
+			$this->db->where('vendor_featured','ok');
 			$this->db->where('added_by',json_encode(array('type'=>'vendor','id'=>$id)));
 		}
 		

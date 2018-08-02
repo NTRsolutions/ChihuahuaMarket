@@ -1,5 +1,5 @@
 <?php
-echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
+echo form_open(base_url() . 'home/cart_finish/go', array(
             'method' => 'post', 
             'enctype' => 'multipart/form-data', 
             'id' => 'cart_form' 
@@ -37,7 +37,7 @@ echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
         </div>
 
         <div class="overflowed">
-            <a class="btn btn-theme-dark" href="<?php echo base_url(); ?>index.php/home/cancel_order">
+            <a class="btn btn-theme-dark" href="<?php echo base_url(); ?>home/cancel_order">
                 <?php echo translate('cancel_order');?>
             </a>
             <span class="btn btn-theme pull-right disabled" id="order_place_btn" onclick="cart_submission();">
@@ -57,7 +57,7 @@ echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
             if(data == 'hypass'){
                 load_orders();
             } else {
-                signin();
+                signin('guest_checkout');
             }
         });
     });
@@ -65,7 +65,7 @@ echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
     function load_orders(){
 		var top = Number(200);
 		$('.orders').html('<div style="text-align:center;width:100%;height:'+(top*2)+'px; position:relative;top:'+top+'px;"><i class="fa fa-refresh fa-spin fa-3x fa-fw"></i></div>');
-        $('.orders').load('<?php echo base_url(); ?>index.php/home/cart_checkout/orders');
+        $('.orders').load('<?php echo base_url(); ?>home/cart_checkout/orders');
     }
 
     function load_address_form(){
@@ -73,7 +73,7 @@ echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
 		var top = Number(200);
 		$('.delivery_address').html('<div style="text-align:center;width:100%;height:'+(top*2)+'px; position:relative;top:'+top+'px;"><i class="fa fa-refresh fa-spin fa-3x fa-fw"></i></div>');
 		
-        $('.delivery_address').load('<?php echo base_url(); ?>index.php/home/cart_checkout/delivery_address',
+        $('.delivery_address').load('<?php echo base_url(); ?>home/cart_checkout/delivery_address',
             function(){
                 var top_off = $('.header').height();
                 $('.selectpicker').selectpicker();
@@ -109,7 +109,7 @@ echo form_open(base_url() . 'index.php/home/cart_finish/go', array(
         if(okay == 'yes'){			
 			var top = Number(200);
 			$('.payments-options').html('<div style="text-align:center;width:100%;height:'+(top*2)+'px; position:relative;top:'+top+'px;"><i class="fa fa-refresh fa-spin fa-3x fa-fw"></i></div>');				
-            $('.payments-options').load('<?php echo base_url(); ?>index.php/home/cart_checkout/payments_options',
+            $('.payments-options').load('<?php echo base_url(); ?>home/cart_checkout/payments_options',
                 function(){
                     var top_off = $('.header').height();
                     $('html, body').animate({

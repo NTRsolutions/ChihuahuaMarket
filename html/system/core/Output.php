@@ -494,7 +494,8 @@ class CI_Output {
 		}
 
 		$headers = $this->apache_request_headers_n();
-		$is_ajax = (isset($headers['X-Requested-With']) && $headers['X-Requested-With'] == 'XMLHttpRequest');
+		//$is_ajax = (isset($headers['X-Requested-With']) && $headers['X-Requested-With'] == 'XMLHttpRequest');
+		$is_ajax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest');
 		if (!$is_ajax && !stripos($_SERVER["REQUEST_URI"],'sitemap'))
 		{
 			if($outgenerate > 50){

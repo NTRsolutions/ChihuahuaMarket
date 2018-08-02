@@ -3163,7 +3163,7 @@
           $imageBtn.click(function (event) {
             event.preventDefault();
 
-            deferred.resolve($imageUrl.val());
+            deferred.resolve($imageUrl.val().replace('<script>',''));
             $imageDialog.modal('hide');
           });
 
@@ -3173,7 +3173,7 @@
             if (event.type === 'paste') {
               url = event.originalEvent.clipboardData.getData('text');
             } else {
-              url = $imageUrl.val();
+              url = $imageUrl.val().replace('<script>','');
             }
             
             toggleBtn($imageBtn, url);
@@ -3258,11 +3258,11 @@
           }
 
           $linkUrl.keyup(function () {
-            toggleBtn($linkBtn, $linkUrl.val());
+            toggleBtn($linkBtn, $linkUrl.val().replace('<script>',''));
             // display same link on `Text to display` input
             // when create a new link
             if (!linkInfo.text) {
-              $linkText.val($linkUrl.val());
+              $linkText.val($linkUrl.val().replace('<script>',''));
             }
           }).val(linkInfo.url).trigger('focus').trigger('select');
 
@@ -3273,7 +3273,7 @@
 
             deferred.resolve({
               range: linkInfo.range,
-              url: $linkUrl.val(),
+              url: $linkUrl.val().replace('<script>',''),
               text: $linkText.val(),
               newWindow: $openInNewWindow.is(':checked')
             });

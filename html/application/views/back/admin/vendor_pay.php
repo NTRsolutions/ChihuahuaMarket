@@ -1,6 +1,6 @@
 <div>
     <?php
-        echo form_open(base_url() . 'index.php/admin/vendor/pay/'.$vendor_id, array(
+        echo form_open(base_url() . 'admin/vendor/pay/'.$vendor_id, array(
             'class' => 'form-horizontal',
             'method' => 'post',
             'id' => 'vendor_pay',
@@ -55,6 +55,9 @@
                 $c2_set    = $this->db->get_where('vendor', array(
                     'vendor_id' => $vendor_id
                 ))->row()->c2_set;
+                $pum_set    = $this->db->get_where('vendor', array(
+                    'vendor_id' => $vendor_id
+                ))->row()->pum_set;
             ?>
 
             <div class="form-group">
@@ -69,7 +72,9 @@
                         <?php } if($stripe_set == 'ok'){ ?>
                         <option value="stripe"><?php echo translate('stripe'); ?></option>
                         <?php } if($c2_set == 'ok'){ ?>
-                        <option value="stripe"><?php echo translate('twocheckout'); ?></option>
+                        <option value="twocheckout"><?php echo translate('twocheckout'); ?></option>
+                        <?php } if($pum_set == 'ok'){?> 
+                         <option value="pum"><?php echo translate('payUmoney'); ?></option>
                         <?php } ?> 
                     </select>
                 </div>
@@ -98,8 +103,12 @@
           $('.method').on('change', function(e) {
             // Open Checkout with further options
             var total = <?php echo $amount; ?>;
-            total = total/parseFloat(<?php echo $this->crud_model->get_type_name_by_id('business_settings', '8', 'value'); ?>);
+            total = total.replace("<?php echo currency(); ?>", '');
+            //total = parseFloat(total.replace(",", ''));
+            total = total/parseFloat(<?php echo exchange(); ?>);
             total = total*100;
+            // total = total/parseFloat(<?php echo $this->crud_model->get_type_name_by_id('business_settings', '8', 'value'); ?>);
+            // total = total*100;
             if($('.method').val() == 'stripe'){
                 handler.open({
                   name: '<?php echo $this->db->get_where('general_settings',array('type'=>'system_title'))->row()->value; ?>',

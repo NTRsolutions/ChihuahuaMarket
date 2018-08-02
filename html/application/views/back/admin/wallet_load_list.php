@@ -28,12 +28,12 @@
                         <?php  $lkk = $this->db->get_where('user',array('user_id'=>$row['user']))->row();echo $lkk->username.' '.$lkk->surname;?>
                 </a>
             </td>
-            <td><?php echo currency($row['amount']); ?></td>
+            <td><?php echo currency('','def').' '.$this->cart->format_number($row['amount']); ?></td>
             <td><?php echo $row['method']; ?></td>
             <td>
-                <a class="btn btn-<?php if($det['status'] == 'paid'){ ?>purple<?php } else { ?>danger<?php } ?> btn-xs btn-labeled fa fa-user" data-toggle="tooltip" 
+                <a class="btn btn-<?php if($row['status'] == 'paid'){ ?>purple<?php } else { ?>danger<?php } ?> btn-xs btn-labeled fa fa-user" data-toggle="tooltip" 
                     onclick="ajax_modal('approval','<?php echo translate('view_status'); ?>','<?php echo translate('successfully_saved!'); ?>','wallet_load_approval','<?php echo $row['wallet_load_id']; ?>')" data-original-title="View" data-container="body">
-                        <?php echo translate($det['status']); ?> 
+                        <?php echo translate($row['status']); ?> 
                 </a>
             </td>
             <td class="text-right">

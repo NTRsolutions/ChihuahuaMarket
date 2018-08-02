@@ -4,11 +4,11 @@
             <div class="col-sm-8 col-sm-offset-2">
                 <!--div class="logo_top">
                     <a href="<?php echo base_url()?>">
-                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200" width="250px">
+                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200">
                     </a>
                 </div-->
 				<?php
-                    echo form_open(base_url() . 'index.php/home/registration/add_info/', array(
+                    echo form_open(base_url() . 'home/registration/add_info/', array(
                         'class' => 'form-login',
                         'method' => 'post',
                         'id' => 'sign_form'
@@ -24,17 +24,17 @@
                                 <?php
 									if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
 								?>
-                                <a href="<?php echo base_url(); ?>index.php/home/login_set/login"> 
+                                <a href="<?php echo base_url(); ?>home/login_set/login"> 
                                     <?php echo translate('login');?>!
                                 </a>
                                 <?php
 									}else{
 								?>
-                                <a href="<?php echo base_url(); ?>index.php/home/login_set/login"> 
+                                <a href="<?php echo base_url(); ?>home/login_set/login"> 
                                     <?php echo translate('login');?>! <?php echo translate('as_customer');?>
                                 </a>
                                 <?php echo translate('_or_');?>
-                                <a href="<?php echo base_url(); ?>index.php/home/vendor_logup/registration"> 
+                                <a href="<?php echo base_url(); ?>home/vendor_logup/registration"> 
                                     <?php echo translate('sign_up');?>! <?php echo translate('as_vendor');?>
                                 </a>
                                 <?php
@@ -109,7 +109,7 @@
                         <div class="col-md-12 terms">
                             <input  name="terms_check" type="checkbox" value="ok" > 
                             <?php echo translate('i_agree_with');?>
-                            <a href="<?php echo base_url();?>index.php/home/legal/terms_conditions" target="_blank">
+                            <a href="<?php echo base_url();?>home/legal/terms_conditions" target="_blank">
                                 <?php echo translate('terms_&_conditions');?>
                             </a>
                         </div>

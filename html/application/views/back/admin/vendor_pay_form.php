@@ -1,6 +1,6 @@
 <div>
     <?php
-        echo form_open(base_url() . 'index.php/admin/vendor/pay/'.$vendor_id, array(
+        echo form_open(base_url() . 'admin/vendor/pay/'.$vendor_id, array(
             'class' => 'form-horizontal',
             'method' => 'post',
             'id' => 'vendor_pay',
@@ -58,6 +58,9 @@
                 $vp_set    = $this->db->get_where('vendor', array(
                     'vendor_id' => $vendor_id
                 ))->row()->vp_set;
+                 $pum_set    = $this->db->get_where('vendor', array(
+                    'vendor_id' => $vendor_id
+                ))->row()->pum_set;
             ?>
 
             <div class="form-group">
@@ -75,7 +78,9 @@
                         <option value="c2"><?php echo translate('twocheckout'); ?></option>
                         <?php } if($vp_set == 'ok'){ ?>
                         <option value="vp"><?php echo translate('voguePay'); ?></option>
-                        <?php }?>
+                        <?php } if($pum_set == 'ok'){?> 
+                         <option value="pum"><?php echo translate('payUmoney'); ?></option>
+                        <?php } ?> 
                     </select>
                 </div>
             </div>
@@ -103,7 +108,7 @@
           $('.method').on('change', function(e) {
             // Open Checkout with further options
             var total = <?php echo $amount; ?>;
-            total = total/parseFloat(<?php echo $this->crud_model->get_type_name_by_id('business_settings', '8', 'value'); ?>);
+            total = total/parseFloat(<?php echo exchange(); ?>);
             total = total*100;
             if($('.method').val() == 'stripe'){
                 handler.open({

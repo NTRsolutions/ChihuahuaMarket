@@ -11,7 +11,7 @@
                         val = val.replace('(','---');
 
                         $.ajax({
-                            url: base_url+'index.php/home/cart/upd_color/'+rowid+'/'+val,
+                            url: base_url+'home/cart/upd_color/'+rowid+'/'+val,
                             beforeSend: function() {
                             },
                             success: function() {
@@ -54,7 +54,7 @@
                             var list1 = here.closest('tr').find('.sub_total');
 
                             $.ajax({
-                                url: base_url+'index.php/home/cart/quantity_update/'+rowid+'/'+quantity,
+                                url: base_url+'home/cart/quantity_update/'+rowid+'/'+quantity,
                                 beforeSend: function() {
                                     list1.html('...'); 
                                 },
@@ -86,14 +86,8 @@
                         var payment_type = '';
                         var state = check_login_stat('state');
                         state.success(function (data) {
-                            if(data == 'hypass'){
                                  var form = $('#cart_form');
                                  form.submit();
-                            } else {
-                                signin();
-                                $('#login_form').attr('action',base_url+'index.php/home/login/do_login/nlog');
-                                $('#logup_form').attr('action',base_url+'index.php/home/registration/add_info/nlog');
-                            }
                         });
                     }
 
@@ -113,7 +107,7 @@
 
                     function update_prices(){
 
-                        var url = base_url+'index.php/home/cart/calcs/prices';
+                        var url = base_url+'home/cart/calcs/prices';
                         $.ajax({
                             url: url,
                             dataType: 'json', 
@@ -134,7 +128,7 @@
                     }
 
                     function update_calc_cart(){
-                        var url = base_url+'index.php/home/cart/calcs/full';
+                        var url = base_url+'home/cart/calcs/full';
                         var total = $('#total');
                         var ship = $('#shipping');
                         var tax = $('#tax');
@@ -174,7 +168,7 @@
                 }
                 var datas = formdata ? formdata : form.serialize();
                 $.ajax({
-                    url: base_url+'index.php/home/coupon_check/',
+                    url: base_url+'home/coupon_check/',
                     type        : 'POST', // form submit method get/post
                     dataType    : 'html', // request type html/json/xml
                     data        : datas, // serialize form data 

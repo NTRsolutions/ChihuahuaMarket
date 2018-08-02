@@ -15,14 +15,15 @@ class Admin extends CI_Controller
         parent::__construct();
         $this->load->database();
         $this->load->library('paypal');
-		$this->load->library('twoCheckout_Lib');
+        $this->load->library('twoCheckout_Lib');
         $this->load->library('vouguepay');
+        $this->load->library('pum');
         /*cache control*/
-		//$this->output->enable_profiler(TRUE);
+        //$this->output->enable_profiler(TRUE);
         $this->output->set_header('Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0');
         $this->output->set_header('Pragma: no-cache');
         //$this->crud_model->ip_data();
-		$this->config->cache_query();
+        $this->config->cache_query();
     }
     
     /* index of the admin. Default: Dashboard; On No Login Session: Back to login page. */
@@ -36,28 +37,81 @@ class Admin extends CI_Controller
             $this->load->view('back/login',$page_data);
         }
     }
+
+    function package($para1 = '', $para2 = '',$para3='') {
+        /*if (!$this->Crud_model->admin_permission('package')) {
+            redirect(base_url() . 'admin');
+        }*/
+        if ($para1 == 'list'){
+            $page_data['all_packages'] = $this->db->get("package")->result();
+            $page_data['page_name'] = 'package';
+
+            $this->load->view('back/admin/package_list',$page_data);
+        }
+        elseif ($para1 == "edit") {
+            $page_data['get_package'] = $this->db->get_where("package", array("package_id" => $para2))->result();
+            $page_data['page_name'] = 'package_edit';
+            $this->load->view('back/admin/package_edit',$page_data);
+        }
+        elseif ($para1=="update") {
+            $package_id = $this->input->post('package_id');
+            $data['name'] = $this->input->post('name');
+            $data['amount'] = $this->input->post('amount');
+            $data['upload_amount'] = $this->input->post('upload_amount');
+           
+            if ($_FILES['image']['name'] !== '') {
+                $id = $package_id;
+                $path = $_FILES['image']['name'];
+                $ext = '.' . pathinfo($path, PATHINFO_EXTENSION);
+                if ($ext==".jpg" || $ext==".JPG" || $ext==".jpeg" || $ext==".JPEG" || $ext==".png" || $ext==".PNG") {
+                    $this->crud_model->file_up("image", "plan", $id, '', '', $ext);
+                    $images[] = array('image' => 'plan_' . $id . $ext, 'thumb' => 'plan_' . $id . '_thumb' . $ext);
+                    $data['image'] = json_encode($images);
+                }
+                else {
+                    $this->session->set_flashdata('alert', 'failed_image');
+                    redirect(base_url().'admin/package', 'refresh');
+                }
+            }
+            $this->db->where('package_id', $para2);
+            $result = $this->db->update('package', $data);
+            if ($result) {
+                $this->session->set_flashdata('alert', 'edit');
+                redirect(base_url().'admin/package', 'refresh');
+            }
+            else {
+                echo "Data Failed to Edit!";
+            }   
+            exit;
+        }
+        else {
+            $page_data['all_packages'] = $this->db->get("package")->result();
+            $page_data['page_name'] = 'package';
+            $this->load->view('back/index', $page_data);
+        }
+    }
     
     /*Product Category add, edit, view, delete */
     function category($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('category')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $data['category_name'] = $this->input->post('category_name');
             $this->db->insert('category', $data);
             $id = $this->db->insert_id();
-			
-			$path = $_FILES['img']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_banner['banner'] 		 = 'category_'.$id.'.'.$ext;
+            
+            $path = $_FILES['img']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_banner['banner']       = 'category_'.$id.'.'.$ext;
             $this->crud_model->file_up("img", "category", $id, '', 'no', '.'.$ext);
-			$this->db->where('category_id', $id);
+            $this->db->where('category_id', $id);
             $this->db->update('category', $data_banner);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } else if ($para1 == 'edit') {
             $page_data['category_data'] = $this->db->get_where('category', array(
@@ -68,25 +122,25 @@ class Admin extends CI_Controller
             $data['category_name'] = $this->input->post('category_name');
             $this->db->where('category_id', $para2);
             $this->db->update('category', $data);
-			if($_FILES['img']['name']!== ''){
-				$path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_banner['banner'] 		 = 'category_'.$para2.'.'.$ext;
-				$this->crud_model->file_up("img", "category", $para2, '', 'no', '.'.$ext);
-				$this->db->where('category_id', $para2);
-				$this->db->update('category', $data_banner);
-			}
-			$this->crud_model->set_category_data(0);
+            if($_FILES['img']['name']!== ''){
+                $path = $_FILES['img']['name'];
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_banner['banner']       = 'category_'.$para2.'.'.$ext;
+                $this->crud_model->file_up("img", "category", $para2, '', 'no', '.'.$ext);
+                $this->db->where('category_id', $para2);
+                $this->db->update('category', $data_banner);
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'delete') {
-			unlink("uploads/category_image/" .$this->crud_model->get_type_name_by_id('category',$para2,'banner'));
+            unlink("uploads/category_image/" .$this->crud_model->get_type_name_by_id('category',$para2,'banner'));
             $this->db->where('category_id', $para2);
             $this->db->delete('category');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('category_id', 'desc');
-			$this->db->where('digital=',NULL);
+            $this->db->where('digital=',NULL);
             $page_data['all_categories'] = $this->db->get('category')->result_array();
             $this->load->view('back/admin/category_list', $page_data);
         } elseif ($para1 == 'add') {
@@ -97,29 +151,29 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	/*Digital Category add, edit, view, delete */
+    /*Digital Category add, edit, view, delete */
     function category_digital($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('category_digital')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $data['category_name'] = $this->input->post('category_name');
-			$data['digital'] = 'ok';
+            $data['digital'] = 'ok';
             $this->db->insert('category', $data);
             $id = $this->db->insert_id();
             
-			$path = $_FILES['img']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_banner['banner'] 		 = 'category_'.$id.'.'.$ext;
+            $path = $_FILES['img']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_banner['banner']       = 'category_'.$id.'.'.$ext;
             $this->crud_model->file_up("img", "category", $id, '', 'no', '.'.$ext);
-			$this->db->where('category_id', $id);
+            $this->db->where('category_id', $id);
             $this->db->update('category', $data_banner);
-			$this->crud_model->set_category_data(0);
-			
+            $this->crud_model->set_category_data(0);
+            
             recache();
         } else if ($para1 == 'edit') {
             $page_data['category_data'] = $this->db->get_where('category', array(
@@ -130,32 +184,32 @@ class Admin extends CI_Controller
             $data['category_name'] = $this->input->post('category_name');
             $this->db->where('category_id', $para2);
             $this->db->update('category', $data);
-			if($_FILES['img']['name']!== ''){
-				$path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_banner['banner'] 		 = 'category_'.$para2.'.'.$ext;
-				$this->crud_model->file_up("img", "category", $para2, '', 'no', '.'.$ext);
-				$this->db->where('category_id', $para2);
-				$this->db->update('category', $data_banner);
-			}
-			$this->crud_model->set_category_data(0);
+            if($_FILES['img']['name']!== ''){
+                $path = $_FILES['img']['name'];
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_banner['banner']       = 'category_'.$para2.'.'.$ext;
+                $this->crud_model->file_up("img", "category", $para2, '', 'no', '.'.$ext);
+                $this->db->where('category_id', $para2);
+                $this->db->update('category', $data_banner);
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'delete') {
-			unlink("uploads/category_image/" .$this->crud_model->get_type_name_by_id('category',$para2,'banner'));
+            unlink("uploads/category_image/" .$this->crud_model->get_type_name_by_id('category',$para2,'banner'));
             $this->db->where('category_id', $para2);
             $this->db->delete('category');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('category_id', 'desc');
-			$this->db->where('digital=','ok');
+            $this->db->where('digital=','ok');
             $page_data['all_categories'] = $this->db->get('category')->result_array();
             $this->load->view('back/admin/category_list_digital', $page_data);
         } elseif ($para1 == 'add') {
             $this->load->view('back/admin/category_add_digital');
         } else {
             $page_data['page_name']      = "category_digital";
-			$this->db->where('digital=','ok');
+            $this->db->where('digital=','ok');
             $page_data['all_categories'] = $this->db->get('category')->result_array();
             $this->load->view('back/index', $page_data);
         }
@@ -165,7 +219,7 @@ class Admin extends CI_Controller
     function blog_category($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('blog')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['name'] = $this->input->post('name');
@@ -203,26 +257,26 @@ class Admin extends CI_Controller
     function slides($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('slides')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
-            $type                		= 'slides';
-            $data['button_color']      	= $this->input->post('color_button');
-			$data['text_color']        	= $this->input->post('color_text');
-			$data['button_text']        = $this->input->post('button_text');
-			$data['button_link']        = $this->input->post('button_link');
-			$data['uploaded_by']		= 'admin';
-			$data['status']				= 'ok';
-			$data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
+            $type                       = 'slides';
+            $data['button_color']       = $this->input->post('color_button');
+            $data['text_color']         = $this->input->post('color_text');
+            $data['button_text']        = $this->input->post('button_text');
+            $data['button_link']        = $this->input->post('button_link');
+            $data['uploaded_by']        = 'admin';
+            $data['status']             = 'ok';
+            $data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
             $this->db->insert('slides', $data);
             $id = $this->db->insert_id();
             $this->crud_model->file_up("img", "slides", $id, '', '', '.jpg');
             recache();
         } elseif ($para1 == "update") {
-            $data['button_color']      	= $this->input->post('color_button');
-			$data['text_color']        	= $this->input->post('color_text');
-			$data['button_text']        = $this->input->post('button_text');
-			$data['button_link']        = $this->input->post('button_link');
+            $data['button_color']       = $this->input->post('color_button');
+            $data['text_color']         = $this->input->post('color_text');
+            $data['button_text']        = $this->input->post('button_text');
+            $data['button_link']        = $this->input->post('button_link');
             $this->db->where('slides_id', $para2);
             $this->db->update('slides', $data);
             $this->crud_model->file_up("img", "slides", $para2, '', '', '.jpg');
@@ -242,7 +296,7 @@ class Admin extends CI_Controller
             $this->load->view('back/admin/slides_edit', $page_data);
         } elseif ($para1 == 'list') {
             $this->db->order_by('slides_id', 'desc');
-			$this->db->where('uploaded_by', 'admin');
+            $this->db->where('uploaded_by', 'admin');
             $page_data['all_slidess'] = $this->db->get('slides')->result_array();
             $this->load->view('back/admin/slides_list', $page_data);
         }elseif ($para1 == 'slide_publish_set') {
@@ -256,19 +310,19 @@ class Admin extends CI_Controller
             $this->db->update('slides', $data);
             recache();
         }
-		elseif ($para1 == 'vendor') {
-			if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-				redirect(base_url() . 'index.php/admin');
-			}
+        elseif ($para1 == 'vendor') {
+            if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
+                redirect(base_url() . 'admin');
+            }
             $page_data['page_name']  = "slides_vendor";
             $this->load->view('back/index', $page_data);
         }
-		elseif ($para1 == 'vendor_slides') {
-			if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-				redirect(base_url() . 'index.php/admin');
-			}
+        elseif ($para1 == 'vendor_slides') {
+            if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
+                redirect(base_url() . 'admin');
+            }
             $this->db->order_by('slides_id', 'desc');
-			$this->db->where('uploaded_by', 'vendor');
+            $this->db->where('uploaded_by', 'vendor');
             $page_data['all_slidess'] = $this->db->get('slides')->result_array();
             $this->load->view('back/admin/slides_list_vendor', $page_data);
         }elseif ($para1 == 'add') {
@@ -284,7 +338,7 @@ class Admin extends CI_Controller
     function blog($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('blog')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['title']          = $this->input->post('title');
@@ -335,32 +389,32 @@ class Admin extends CI_Controller
     function sub_category($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('sub_category')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $data['sub_category_name'] = $this->input->post('sub_category_name');
             $data['category']          = $this->input->post('category');
-			if($this->input->post('brand')==NULL)
-			{
-				$data['brand']             = '[]';
-			}
-			else{
-				$data['brand']             = json_encode($this->input->post('brand'));
-			}
+            if($this->input->post('brand')==NULL)
+            {
+                $data['brand']             = '[]';
+            }
+            else{
+                $data['brand']             = json_encode($this->input->post('brand'));
+            }
             $this->db->insert('sub_category', $data);
-			$id = $this->db->insert_id();
+            $id = $this->db->insert_id();
             
-			$path = $_FILES['img']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_banner['banner'] 		 = 'sub_category_'.$id.'.'.$ext;
+            $path = $_FILES['img']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_banner['banner']       = 'sub_category_'.$id.'.'.$ext;
             $this->crud_model->file_up("img", "sub_category", $id, '', 'no', '.'.$ext);
-			$this->db->where('sub_category_id', $id);
+            $this->db->where('sub_category_id', $id);
             $this->db->update('sub_category', $data_banner);
-			$this->crud_model->set_category_data(0);
-			
+            $this->crud_model->set_category_data(0);
+            
             recache();
         } else if ($para1 == 'edit') {
             $page_data['sub_category_data'] = $this->db->get_where('sub_category', array(
@@ -370,35 +424,35 @@ class Admin extends CI_Controller
         } elseif ($para1 == "update") {
             $data['sub_category_name'] = $this->input->post('sub_category_name');
             $data['category']          = $this->input->post('category');
-			if($this->input->post('brand')==NULL)
-			{
-				$data['brand']             = '[]';
-			}
-			else{
-				$data['brand']             = json_encode($this->input->post('brand'));
-			}
+            if($this->input->post('brand')==NULL)
+            {
+                $data['brand']             = '[]';
+            }
+            else{
+                $data['brand']             = json_encode($this->input->post('brand'));
+            }
             $this->db->where('sub_category_id', $para2);
             $this->db->update('sub_category', $data);
-			
-			if($_FILES['img']['name']!== ''){
-				$path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_banner['banner'] 		 = 'sub_category_'.$para2.'.'.$ext;
-				$this->crud_model->file_up("img", "sub_category", $para2, '', 'no', '.'.$ext);
-				$this->db->where('sub_category_id', $para2);
-				$this->db->update('sub_category', $data_banner);
-			}
-			$this->crud_model->set_category_data(0);
+            
+            if($_FILES['img']['name']!== ''){
+                $path = $_FILES['img']['name'];
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_banner['banner']       = 'sub_category_'.$para2.'.'.$ext;
+                $this->crud_model->file_up("img", "sub_category", $para2, '', 'no', '.'.$ext);
+                $this->db->where('sub_category_id', $para2);
+                $this->db->update('sub_category', $data_banner);
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'delete') {
-			unlink("uploads/sub_category_image/" .$this->crud_model->get_type_name_by_id('sub_category',$para2,'banner'));
+            unlink("uploads/sub_category_image/" .$this->crud_model->get_type_name_by_id('sub_category',$para2,'banner'));
             $this->db->where('sub_category_id', $para2);
             $this->db->delete('sub_category');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('sub_category_id', 'desc');
-			$this->db->where('digital=',NULL);
+            $this->db->where('digital=',NULL);
             $page_data['all_sub_category'] = $this->db->get('sub_category')->result_array();
             $this->load->view('back/admin/sub_category_list', $page_data);
         } elseif ($para1 == 'add') {
@@ -409,30 +463,30 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	
-	/*Digital Sub-category add, edit, view, delete */
+    
+    /*Digital Sub-category add, edit, view, delete */
     function sub_category_digital($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('sub_category_digital')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $data['sub_category_name'] = $this->input->post('sub_category_name');
             $data['category']          = $this->input->post('category');
-			$data['digital']           = 'ok';
+            $data['digital']           = 'ok';
             $this->db->insert('sub_category', $data);
-			$id = $this->db->insert_id();
-			$path = $_FILES['img']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_banner['banner'] 		 = 'sub_category_'.$id.'.'.$ext;
+            $id = $this->db->insert_id();
+            $path = $_FILES['img']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_banner['banner']       = 'sub_category_'.$id.'.'.$ext;
             $this->crud_model->file_up("img", "sub_category", $id, '', 'no', '.'.$ext);
-			$this->db->where('sub_category_id', $id);
+            $this->db->where('sub_category_id', $id);
             $this->db->update('sub_category', $data_banner);
-			$this->crud_model->set_category_data(0);
-			
+            $this->crud_model->set_category_data(0);
+            
             recache();
         } else if ($para1 == 'edit') {
             $page_data['sub_category_data'] = $this->db->get_where('sub_category', array(
@@ -444,33 +498,33 @@ class Admin extends CI_Controller
             $data['category']          = $this->input->post('category');
             $this->db->where('sub_category_id', $para2);
             $this->db->update('sub_category', $data);
-			
-			if($_FILES['img']['name']!== ''){
-				$path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_banner['banner'] 		 = 'sub_category_'.$para2.'.'.$ext;
-				$this->crud_model->file_up("img", "sub_category", $para2, '', 'no', '.'.$ext);
-				$this->db->where('sub_category_id', $para2);
-				$this->db->update('sub_category', $data_banner);
-			}
-			$this->crud_model->set_category_data(0);
+            
+            if($_FILES['img']['name']!== ''){
+                $path = $_FILES['img']['name'];
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_banner['banner']       = 'sub_category_'.$para2.'.'.$ext;
+                $this->crud_model->file_up("img", "sub_category", $para2, '', 'no', '.'.$ext);
+                $this->db->where('sub_category_id', $para2);
+                $this->db->update('sub_category', $data_banner);
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'delete') {
-			unlink("uploads/sub_category_image/" .$this->crud_model->get_type_name_by_id('sub_category',$para2,'banner'));
+            unlink("uploads/sub_category_image/" .$this->crud_model->get_type_name_by_id('sub_category',$para2,'banner'));
             $this->db->where('sub_category_id', $para2);
             $this->db->delete('sub_category');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('sub_category_id', 'desc');
-			$this->db->where('digital=','ok');
+            $this->db->where('digital=','ok');
             $page_data['all_sub_category'] = $this->db->get('sub_category')->result_array();
             $this->load->view('back/admin/sub_category_list_digital', $page_data);
         } elseif ($para1 == 'add') {
             $this->load->view('back/admin/sub_category_add_digital');
         } else {
             $page_data['page_name']        = "sub_category_digital";
-			$this->db->where('digital=','ok');
+            $this->db->where('digital=','ok');
             $page_data['all_sub_category'] = $this->db->get('sub_category')->result_array();
             $this->load->view('back/index', $page_data);
         }
@@ -480,44 +534,44 @@ class Admin extends CI_Controller
     function brand($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('brand')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $type                = 'brand';
             $data['name']        = $this->input->post('name');
             $this->db->insert('brand', $data);
             $id = $this->db->insert_id();
-			
-			$path = $_FILES['img']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_banner['logo'] 		 = 'brand_'.$id.'.'.$ext;
+            
+            $path = $_FILES['img']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_banner['logo']         = 'brand_'.$id.'.'.$ext;
             $this->crud_model->file_up("img", "brand", $id, '', 'no', '.'.$ext);
-			$this->db->where('brand_id', $id);
+            $this->db->where('brand_id', $id);
             $this->db->update('brand', $data_banner);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == "update") {
             $data['name']        = $this->input->post('name');
             $this->db->where('brand_id', $para2);
             $this->db->update('brand', $data);
             if($_FILES['img']['name']!== ''){
-				$path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_logo['logo'] 		 = 'brand_'.$para2.'.'.$ext;
-				$this->crud_model->file_up("img", "brand", $para2, '', 'no', '.'.$ext);
-				$this->db->where('brand_id', $para2);
-				$this->db->update('brand', $data_logo);
-			}
-			$this->crud_model->set_category_data(0);
+                $path = $_FILES['img']['name'];
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_logo['logo']       = 'brand_'.$para2.'.'.$ext;
+                $this->crud_model->file_up("img", "brand", $para2, '', 'no', '.'.$ext);
+                $this->db->where('brand_id', $para2);
+                $this->db->update('brand', $data_logo);
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'delete') {
             unlink("uploads/brand_image/" .$this->crud_model->get_type_name_by_id('brand',$para2,'logo'));
             $this->db->where('brand_id', $para2);
             $this->db->delete('brand');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'multi_delete') {
             $ids = explode('-', $param2);
@@ -544,7 +598,7 @@ class Admin extends CI_Controller
     function coupon($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('coupon')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['title'] = $this->input->post('title');
@@ -607,7 +661,7 @@ class Admin extends CI_Controller
     function report($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('report')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "report";
         $page_data['products']  = $this->db->get('product')->result_array();
@@ -618,11 +672,11 @@ class Admin extends CI_Controller
     function report_stock($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('report')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         $page_data['page_name'] = "report_stock";
         if ($this->input->post('product')) {
             $page_data['product_name'] = $this->crud_model->get_type_name_by_id('product', $this->input->post('product'), 'title');
@@ -635,7 +689,7 @@ class Admin extends CI_Controller
     function report_wish($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('report')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "report_wish";
         $this->load->view('back/index', $page_data);
@@ -645,11 +699,11 @@ class Admin extends CI_Controller
     function product($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('product')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $options = array();
             if ($_FILES["images"]['name'][0] == '') {
@@ -664,8 +718,8 @@ class Admin extends CI_Controller
             $data['sale_price']         = $this->input->post('sale_price');
             $data['purchase_price']     = $this->input->post('purchase_price');
             $data['add_timestamp']      = time();
-			$data['download']           = NULL;
-			$data['featured']           = 'no';
+            $data['download']           = NULL;
+            $data['featured']           = 'no';
             $data['status']             = 'ok';
             $data['rating_user']        = '[]';
             $data['tax']                = $this->input->post('tax');
@@ -674,6 +728,7 @@ class Admin extends CI_Controller
             $data['tax_type']           = $this->input->post('tax_type');
             $data['shipping_cost']      = $this->input->post('shipping_cost');
             $data['tag']                = $this->input->post('tag');
+            $data['is_bundle']          = 'no';
             $data['color']              = json_encode($this->input->post('color'));
             $data['num_of_imgs']        = $num_of_imgs;
             $data['current_stock']      = $this->input->post('current_stock');
@@ -686,25 +741,25 @@ class Admin extends CI_Controller
             $choice_titles              = $this->input->post('op_title');
             $choice_types               = $this->input->post('op_type');
             $choice_no                  = $this->input->post('op_no');
-			$data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
-			if(count($choice_titles ) > 0){
-				foreach ($choice_titles as $i => $row) {
-					$choice_options         = $this->input->post('op_set'.$choice_no[$i]);
-					$options[]              =   array(
-													'no' => $choice_no[$i],
-													'title' => $choice_titles[$i],
-													'name' => 'choice_'.$choice_no[$i],
-													'type' => $choice_types[$i],
-													'option' => $choice_options
-												);
-				}
-			}
+            $data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
+            if(count($choice_titles ) > 0){
+                foreach ($choice_titles as $i => $row) {
+                    $choice_options         = $this->input->post('op_set'.$choice_no[$i]);
+                    $options[]              =   array(
+                                                    'no' => $choice_no[$i],
+                                                    'title' => $choice_titles[$i],
+                                                    'name' => 'choice_'.$choice_no[$i],
+                                                    'type' => $choice_types[$i],
+                                                    'option' => $choice_options
+                                                );
+                }
+            }
             $data['options']            = json_encode($options);
             $this->db->insert('product', $data);
             $id = $this->db->insert_id();
-			$this->benchmark->mark_time();
+            $this->benchmark->mark_time();
             $this->crud_model->file_up("images", "product", $id, 'multi');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } else if ($para1 == "update") {
             $options = array();
@@ -738,24 +793,24 @@ class Admin extends CI_Controller
             $choice_titles              = $this->input->post('op_title');
             $choice_types               = $this->input->post('op_type');
             $choice_no                  = $this->input->post('op_no');
-			if(count($choice_titles ) > 0){
-				foreach ($choice_titles as $i => $row) {
-					$choice_options         = $this->input->post('op_set'.$choice_no[$i]);
-					$options[]              =   array(
-													'no' => $choice_no[$i],
-													'title' => $choice_titles[$i],
-													'name' => 'choice_'.$choice_no[$i],
-													'type' => $choice_types[$i],
-													'option' => $choice_options
-												);
-				}
-			}
+            if(count($choice_titles ) > 0){
+                foreach ($choice_titles as $i => $row) {
+                    $choice_options         = $this->input->post('op_set'.$choice_no[$i]);
+                    $options[]              =   array(
+                                                    'no' => $choice_no[$i],
+                                                    'title' => $choice_titles[$i],
+                                                    'name' => 'choice_'.$choice_no[$i],
+                                                    'type' => $choice_types[$i],
+                                                    'option' => $choice_options
+                                                );
+                }
+            }
             $data['options']            = json_encode($options);
             $this->crud_model->file_up("images", "product", $para2, 'multi');
             
             $this->db->where('product_id', $para2);
             $this->db->update('product', $data);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } else if ($para1 == 'edit') {
             $page_data['product_data'] = $this->db->get_where('product', array(
@@ -771,11 +826,11 @@ class Admin extends CI_Controller
             $this->crud_model->file_dlt('product', $para2, '.jpg', 'multi');
             $this->db->where('product_id', $para2);
             $this->db->delete('product');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('product_id', 'desc');
-			$this->db->where('download=',NULL);
+            $this->db->where('download=',NULL);
             $page_data['all_product'] = $this->db->get('product')->result_array();
             $this->load->view('back/admin/product_list', $page_data);
         } elseif ($para1 == 'list_data') {
@@ -787,34 +842,39 @@ class Admin extends CI_Controller
             if($search){
                 $this->db->like('title', $search, 'both');
             }
-			$this->db->where('download=',NULL);
+            $this->db->where('download=',NULL);
+            $this->db->where('is_bundle=', 'no');
             $total      = $this->db->get('product')->num_rows();
             $this->db->limit($limit);
-			if($sort == ''){
-				$sort = 'product_id';
-				$order = 'DESC';
-			}
+            if($sort == ''){
+                $sort = 'product_id';
+                $order = 'DESC';
+            }
             $this->db->order_by($sort,$order);
             if($search){
                 $this->db->like('title', $search, 'both');
             }
-			$this->db->where('download=',NULL);
+            $this->db->where('download=',NULL);
+            $this->db->where('is_bundle=', 'no');
             $products   = $this->db->get('product', $limit, $offset)->result_array();
             $data       = array();
             foreach ($products as $row) {
 
                 $res    = array(
-                             'image' => '',
-                             'title' => '',
-                             'current_stock' => '',
-                             'deal' => '',
-                             'publish' => '',
-                             'featured' => '',
-                             'options' => ''
+                             'image'        => '',
+                             'title'        => '',
+                             'added_by'     => '',
+                             'current_stock'=> '',
+                             'deal'         => '',
+                             'publish'      => '',
+                             'featured'     => '',
+                             'options'      => ''
                           );
 
                 $res['image']  = '<img class="img-sm" style="height:auto !important; border:1px solid #ddd;padding:2px; border-radius:2px !important;" src="'.$this->crud_model->file_view('product',$row['product_id'],'','','thumb','src','multi','one').'"  />';
                 $res['title']  = $row['title'];
+                $res['added_by']  = $this->crud_model->product_by($row['product_id']);
+
                 if($row['status'] == 'ok'){
                     $res['publish']  = '<input id="pub_'.$row['product_id'].'" class="sw1" type="checkbox" data-id="'.$row['product_id'].'" checked />';
                 } else {
@@ -879,12 +939,12 @@ class Admin extends CI_Controller
         } elseif ($para1 == 'sub_by_cat') {
             echo $this->crud_model->select_html('sub_category', 'sub_category', 'sub_category_name', 'add', 'demo-chosen-select required', '', 'category', $para2, 'get_brnd');
         } elseif ($para1 == 'brand_by_sub') {
-			$brands=json_decode($this->crud_model->get_type_name_by_id('sub_category',$para2,'brand'),true);
-			if(empty($brands)){
-				echo translate("No brands are available for this sub category");
-			} else {
-            	echo $this->crud_model->select_html('brand', 'brand', 'name', 'add', 'demo-chosen-select required', '', 'brand_id', $brands, '', 'multi');
-			}
+            $brands=json_decode($this->crud_model->get_type_name_by_id('sub_category',$para2,'brand'),true);
+            if(empty($brands)){
+                echo translate("No brands are available for this sub category");
+            } else {
+                echo $this->crud_model->select_html('brand', 'brand', 'name', 'add', 'demo-chosen-select required', '', 'brand_id', $brands, '', 'multi');
+            }
         } elseif ($para1 == 'product_by_sub') {
             echo $this->crud_model->select_html('product', 'product', 'title', 'add', 'demo-chosen-select required', '', 'sub_category', $para2, 'get_pro_res');
         } elseif ($para1 == 'pur_by_pro') {
@@ -935,7 +995,7 @@ class Admin extends CI_Controller
             }
             $this->db->where('product_id', $product);
             $this->db->update('product', $data);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'add_discount_set') {
             $product               = $this->input->post('product');
@@ -943,7 +1003,7 @@ class Admin extends CI_Controller
             $data['discount_type'] = $this->input->post('discount_type');
             $this->db->where('product_id', $product);
             $this->db->update('product', $data);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } else {
             $page_data['page_name']   = "product";
@@ -951,16 +1011,245 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	
-	/* Digital add, edit, view, delete, stock increase, decrease, discount */
+
+    function customer_products($para1 = '', $para2 = '', $para3 = '')
+    {
+        if (!$this->crud_model->admin_permission('product')) {
+            redirect(base_url() . 'admin');
+        }
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'view') {
+            $page_data['product_data'] = $this->db->get_where('customer_product', array(
+                'customer_product_id' => $para2
+            ))->result_array();
+            $this->load->view('back/admin/customer_product_view', $page_data);
+        } elseif ($para1 == 'delete') {
+            $this->crud_model->file_dlt('customer_product', $para2, '.jpg', 'multi');
+            $this->db->where('customer_product_id', $para2);
+            $this->db->delete('customer_product');
+            $this->crud_model->set_category_data(0);
+            recache();
+        } elseif ($para1 == 'list') {
+            $this->db->order_by('customer_product_id', 'desc');
+            $page_data['all_product'] = $this->db->get('customer_product')->result_array();
+            $this->load->view('back/admin/customer_product_list', $page_data);
+        } elseif ($para1 == 'list_data') {
+            $limit      = $this->input->get('limit');
+            $search     = $this->input->get('search');
+            $order      = $this->input->get('order');
+            $offset     = $this->input->get('offset');
+            $sort       = $this->input->get('sort');
+            if($search){
+                $this->db->like('title', $search, 'both');
+            }
+            $total      = $this->db->get('customer_product')->num_rows();
+            $this->db->limit($limit);
+            if($sort == ''){
+                $sort = 'customer_product_id';
+                $order = 'DESC';
+            }
+            $this->db->order_by($sort,$order);
+            if($search){
+                $this->db->like('title', $search, 'both');
+            }
+            $products   = $this->db->get('customer_product', $limit, $offset)->result_array();
+            $data       = array();
+            foreach ($products as $row) {
+
+                $res    = array(
+                             'image'        => '',
+                             'title'        => '',
+                             'uploaded_by'  => '',
+                             'customer_status'       => '',
+                             'publish'      => '',
+                             'options'      => ''
+                          );
+
+                $res['image']  = '<img class="img-sm" style="height:auto !important; border:1px solid #ddd;padding:2px; border-radius:2px !important;" src="'.$this->crud_model->file_view('customer_product',$row['customer_product_id'],'','','thumb','src','multi','one').'"  />';
+                $res['title']  = '<a target="_blank" href="'.$this->crud_model->customer_product_link($row['customer_product_id']).'">
+                '.$row['title'].'
+            </a>';
+                $res['uploaded_by']  = $this->db->get_where('user',array('user_id'=>$row['added_by']))->row()->username.' '.$this->db->get_where('user',array('user_id'=>$row['added_by']))->row()->surname;
+
+                if($row['admin_status'] == 'ok'){
+                    $res['publish']  = '<input id="pub_'.$row['customer_product_id'].'" class="sw1" type="checkbox" data-id="'.$row['customer_product_id'].'" checked />';
+                } else {
+                    $res['publish']  = '<input id="pub_'.$row['customer_product_id'].'" class="sw1" type="checkbox" data-id="'.$row['customer_product_id'].'" />';
+                }
+
+                if($row['status'] == 'ok'){
+                    $res['customer_status']  = ' <label class="label label-success publish_btn">'.translate('Published').'</label>';
+                } else {
+                    $res['customer_status']  = ' <label class="label label-danger publish_btn">'.translate('Unpublished').'</label>';
+                }
+                //add html for action
+                $res['options'] = "  <a class=\"btn btn-info btn-xs btn-labeled fa fa-location-arrow\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_set_full('view','".translate('view_product')."','".translate('successfully_viewed!')."','product_view','".$row['customer_product_id']."');proceed('to_list');\" data-original-title=\"View\" data-container=\"body\">
+                                    ".translate('view')."
+                            </a>
+                            
+                            <a onclick=\"delete_confirm('".$row['customer_product_id']."','".translate('really_want_to_delete_this?')."')\" 
+                                class=\"btn btn-danger btn-xs btn-labeled fa fa-trash\" data-toggle=\"tooltip\" data-original-title=\"Delete\" data-container=\"body\">
+                                    ".translate('delete')."
+                            </a>";
+                $data[] = $res;
+            }
+            $result = array(
+                             'total' => $total,
+                             'rows' => $data
+                           );
+
+            echo json_encode($result);
+        } else if ($para1 == 'dlt_img') {
+            $a = explode('_', $para2);
+            $this->crud_model->file_dlt('customer_product', $a[0], '.jpg', 'multi', $a[1]);
+            recache();
+        } elseif ($para1 == 'sub_by_cat') {
+            echo $this->crud_model->select_html('sub_category', 'sub_category', 'sub_category_name', 'add', 'demo-chosen-select required', '', 'category', $para2, 'get_brnd');
+        } elseif ($para1 == 'brand_by_sub') {
+            $brands=json_decode($this->crud_model->get_type_name_by_id('sub_category',$para2,'brand'),true);
+            if(empty($brands)){
+                echo translate("No brands are available for this sub category");
+            } else {
+                echo $this->crud_model->select_html('brand', 'brand', 'name', 'add', 'demo-chosen-select required', '', 'brand_id', $brands, '', 'multi');
+            }
+        } elseif ($para1 == 'product_by_sub') {
+            echo $this->crud_model->select_html('product', 'product', 'title', 'add', 'demo-chosen-select required', '', 'sub_category', $para2, 'get_pro_res');
+        } elseif ($para1 == 'pur_by_pro') {
+            echo $this->crud_model->get_type_name_by_id('product', $para2, 'purchase_price');
+        } elseif ($para1 == 'sale_report') {
+            $data['product'] = $para2;
+            $this->load->view('back/admin/product_sale_report', $data);
+        } elseif ($para1 == 'product_publish_set') {
+            $product = $para2;
+            if ($para3 == 'true') {
+                $data['admin_status'] = 'ok';
+            } else {
+                $data['admin_status'] = 'no';
+            }
+            $this->db->where('customer_product_id', $product);
+            $this->db->update('customer_product', $data);
+            $this->crud_model->set_category_data(0);
+            recache();
+        } else {
+            $page_data['page_name']   = "customer_products";
+            $page_data['all_product'] = $this->db->get('customer_product')->result_array();
+            $this->load->view('back/index', $page_data);
+        }
+    }
+
+        /* membership_payment Management */
+    function package_payment($para1 = '', $para2 = '', $para3 = '')
+    {
+       if (!$this->crud_model->admin_permission('product')) {
+            redirect(base_url() . 'admin');
+        }
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'view') {
+            $page_data['package_data'] = $this->db->get_where('package_payment', array(
+                'package_payment_id' => $para2
+            ))->row();
+            $this->load->view('back/admin/package_payment_view', $page_data);
+        } elseif ($para1 == 'delete') {
+            $this->db->where('package_payment_id', $para2);
+            $this->db->delete('package_payment');
+            $this->crud_model->set_category_data(0);
+            recache();
+        }elseif ($para1 == 'list') {
+            $this->db->order_by('package_payment_id', 'desc');
+            $page_data['all_product'] = $this->db->get('package_payment')->result_array();
+            $this->load->view('back/admin/package_payment_list', $page_data);
+        } elseif ($para1 == 'list_data') {
+            $limit      = $this->input->get('limit');
+            $search     = $this->input->get('search');
+            $order      = $this->input->get('order');
+            $offset     = $this->input->get('offset');
+            $sort       = $this->input->get('sort');
+            if($search){
+                $this->db->like('title', $search, 'both');
+            }
+            $total      = $this->db->get('package_payment')->num_rows();
+            $this->db->limit($limit);
+            if($sort == ''){
+                $sort = 'package_payment_id';
+                $order = 'DESC';
+            }
+            $this->db->order_by($sort,$order);
+            if($search){
+                $this->db->like('payment_type', $search, 'both');
+            }
+            $i=1;
+            $products   = $this->db->get('package_payment', $limit, $offset)->result_array();
+            $data       = array();
+            foreach ($products as $row) {
+
+                $res    = array(
+                             '#'    => '',
+                             'customer_name'    => '',
+                             'date'             => '',
+                             'payment_type'     => '',
+                             'amount'           => '',
+                             'package'          => '',
+                             'status'           => '',
+                             'options'          => ''
+                          );
+                $res['#'] = $i;
+                $res['customer_name']  = $this->db->get_where('user',array('user_id'=>$row['user_id']))->row()->username.' '.$this->db->get_where('user',array('user_id'=>$row['user_id']))->row()->surname;
+                $res['date']  = date('d/m/Y H:i A', $row['purchase_datetime']);
+                $res['payment_type'] = "<center><span class='badge badge-primary'>".$row['payment_type']."</span></center>";
+                $res['amount'] = currency('','def').' '.$this->cart->format_number($row['amount']);
+                $res['package'] = $this->db->get_where('package',array('package_id'=>$row['package_id']))->row()->name;
+                if ($row['payment_status'] == 'paid') {
+                            $res['status'] = "<center><span class='badge badge-success'>".translate($row['payment_status'])."</span></center>";
+                } elseif ($row['payment_status'] == 'due') {
+                    $res['status'] = "<center><span class='badge badge-danger'>".translate($row['payment_status'])."</span></center>";
+                } elseif ($row['payment_status'] == 'pending') {
+                    $res['status'] = "<center><span class='badge badge-info'>".translate($row['payment_status'])."</span></center>";
+                }
+
+                if($row['status'] == 'ok'){
+                    $res['customer_status']  = ' <label class="label label-success publish_btn">'.translate('Published').'</label>';
+                } else {
+                    $res['customer_status']  = ' <label class="label label-danger publish_btn">'.translate('Unpublished').'</label>';
+                }
+                //add html for action
+                $res['options'] = "  <a class=\"btn btn-info btn-xs btn-labeled fa fa-location-arrow\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_modal('view','".translate('payment_details')."','".translate('successfully_saved!')."','package_payment_view','".$row['package_payment_id']."');proceed('to_list');\" data-original-title=\"View\" data-container=\"body\">
+                                    ".translate('view')."
+                            </a>
+                            <a onclick=\"delete_confirm('".$row['package_payment_id']."','".translate('really_want_to_delete_this?')."')\" 
+                                class=\"btn btn-danger btn-xs btn-labeled fa fa-trash\" data-toggle=\"tooltip\" data-original-title=\"Delete\" data-container=\"body\">
+                                    ".translate('delete')."
+                            </a>";
+                $data[] = $res;
+                $i++;
+            }
+            $result = array(
+                             'total' => $total,
+                             'rows' => $data
+                           );
+
+            echo json_encode($result);
+        } else {
+            $page_data['page_name']   = "package_payment";
+            $page_data['all_product'] = $this->db->get('customer_product')->result_array();
+            $this->load->view('back/index', $page_data);
+        }
+    }
+    
+    /* Digital add, edit, view, delete, stock increase, decrease, discount */
     function digital($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('product')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','69','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             if ($_FILES["images"]['name'][0] == '') {
                 $num_of_imgs = 0;
@@ -977,7 +1266,7 @@ class Admin extends CI_Controller
             $data['featured']           = 'no';
             $data['status']             = 'ok';
             $data['rating_user']        = '[]';
-			$data['update_time']        = time();
+            $data['update_time']        = time();
             $data['tax']                = $this->input->post('tax');
             $data['discount']           = $this->input->post('discount');
             $data['discount_type']      = $this->input->post('discount_type');
@@ -989,77 +1278,77 @@ class Admin extends CI_Controller
             $additional_fields['name']  = json_encode($this->input->post('ad_field_names'));
             $additional_fields['value'] = json_encode($this->input->post('ad_field_values'));
             $data['additional_fields']  = json_encode($additional_fields);
-			$data['requirements']		=	'[]';
-			$data['video']				=	'[]';
+            $data['requirements']       =   '[]';
+            $data['video']              =   '[]';
             
-			$data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
-			
+            $data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
+            
             $this->db->insert('product', $data);
             $id = $this->db->insert_id();
-			$this->benchmark->mark_time();
-			
+            $this->benchmark->mark_time();
+            
             $this->crud_model->file_up("images", "product", $id, 'multi');
-			
-			$path = $_FILES['logo']['name'];
-			$ext = pathinfo($path, PATHINFO_EXTENSION);
-			$data_logo['logo'] 		 = 'digital_logo_'.$id.'.'.$ext;
-			$this->db->where('product_id' , $id);
-			$this->db->update('product' , $data_logo);
-			$this->crud_model->file_up("logo", "digital_logo", $id, '','no','.'.$ext);
-			
-			//Requirements add
-			$requirements				=	array();
-			$req_title					=	$this->input->post('req_title');
-			$req_desc					=	$this->input->post('req_desc');
-			if(!empty($req_title)){
-				foreach($req_title as $i => $row){
-					$requirements[]			=	array('index'=>$i,'field'=>$row,'desc'=>$req_desc[$i]);
-				}
-			}
-			
-			$data_req['requirements']			=	json_encode($requirements);
-			$this->db->where('product_id' , $id);
-			$this->db->update('product' , $data_req);
-			
-			//File upload
-			$rand           = substr(hash('sha512', rand()), 0, 20);
-			$name           = $id.'_'.$rand.'_'.$_FILES['product_file']['name'];
-			$da['download_name'] = $name;
-			$da['download'] = 'ok';
-			$folder = $this->db->get_where('general_settings', array('type' => 'file_folder'))->row()->value;
-			move_uploaded_file($_FILES['product_file']['tmp_name'], 'uploads/file_products/' . $folder .'/' . $name);
+            
+            $path = $_FILES['logo']['name'];
+            $ext = pathinfo($path, PATHINFO_EXTENSION);
+            $data_logo['logo']       = 'digital_logo_'.$id.'.'.$ext;
+            $this->db->where('product_id' , $id);
+            $this->db->update('product' , $data_logo);
+            $this->crud_model->file_up("logo", "digital_logo", $id, '','no','.'.$ext);
+            
+            //Requirements add
+            $requirements               =   array();
+            $req_title                  =   $this->input->post('req_title');
+            $req_desc                   =   $this->input->post('req_desc');
+            if(!empty($req_title)){
+                foreach($req_title as $i => $row){
+                    $requirements[]         =   array('index'=>$i,'field'=>$row,'desc'=>$req_desc[$i]);
+                }
+            }
+            
+            $data_req['requirements']           =   json_encode($requirements);
+            $this->db->where('product_id' , $id);
+            $this->db->update('product' , $data_req);
+            
+            //File upload
+            $rand           = substr(hash('sha512', rand()), 0, 20);
+            $name           = $id.'_'.$rand.'_'.$_FILES['product_file']['name'];
+            $da['download_name'] = $name;
+            $da['download'] = 'ok';
+            $folder = $this->db->get_where('general_settings', array('type' => 'file_folder'))->row()->value;
+            move_uploaded_file($_FILES['product_file']['tmp_name'], 'uploads/file_products/' . $folder .'/' . $name);
             $this->db->where('product_id', $id);
             $this->db->update('product', $da);
-			
-			//vdo upload
-			$video_details				=	array();
-			if($this->input->post('upload_method') == 'upload'){				
-				$video 				= 	$_FILES['videoFile']['name'];
-				$ext   				= 	pathinfo($video,PATHINFO_EXTENSION);
-				move_uploaded_file($_FILES['videoFile']['tmp_name'],'uploads/video_digital_product/digital_'.$id.'.'.$ext);
-				$video_src 			= 	'uploads/video_digital_product/digital_'.$id.'.'.$ext;
-				$video_details[] 	= 	array('type'=>'upload','from'=>'local','video_link'=>'','video_src'=>$video_src);
-				$data_vdo['video']	=	json_encode($video_details);
-				$this->db->where('product_id',$id);
-				$this->db->update('product',$data_vdo);		
-			}
-			elseif ($this->input->post('upload_method') == 'share'){
-				$from 				= $this->input->post('site');
-				$video_link 		= $this->input->post('video_link');
-				$code				= $this->input->post('video_code');
-				if($from=='youtube'){
-					$video_src  	= 'https://www.youtube.com/embed/'.$code;
-				}else if($from=='dailymotion'){
-					$video_src   	= '//www.dailymotion.com/embed/video/'.$code;
-				}else if($from=='vimeo'){
-					$video_src   	= 'https://player.vimeo.com/video/'.$code;
-				}
-				$video_details[] 	= 	array('type'=>'share','from'=>$from,'video_link'=>$video_link,'video_src'=>$video_src);
-				$data_vdo['video']	=	json_encode($video_details);
-				$this->db->where('product_id',$id);
-				$this->db->update('product',$data_vdo);	
-			}
-			$this->crud_model->set_category_data(0);
+            
+            //vdo upload
+            $video_details              =   array();
+            if($this->input->post('upload_method') == 'upload'){                
+                $video              =   $_FILES['videoFile']['name'];
+                $ext                =   pathinfo($video,PATHINFO_EXTENSION);
+                move_uploaded_file($_FILES['videoFile']['tmp_name'],'uploads/video_digital_product/digital_'.$id.'.'.$ext);
+                $video_src          =   'uploads/video_digital_product/digital_'.$id.'.'.$ext;
+                $video_details[]    =   array('type'=>'upload','from'=>'local','video_link'=>'','video_src'=>$video_src);
+                $data_vdo['video']  =   json_encode($video_details);
+                $this->db->where('product_id',$id);
+                $this->db->update('product',$data_vdo);     
+            }
+            elseif ($this->input->post('upload_method') == 'share'){
+                $from               = $this->input->post('site');
+                $video_link         = $this->input->post('video_link');
+                $code               = $this->input->post('video_code');
+                if($from=='youtube'){
+                    $video_src      = 'https://www.youtube.com/embed/'.$code;
+                }else if($from=='dailymotion'){
+                    $video_src      = '//www.dailymotion.com/embed/video/'.$code;
+                }else if($from=='vimeo'){
+                    $video_src      = 'https://player.vimeo.com/video/'.$code;
+                }
+                $video_details[]    =   array('type'=>'share','from'=>$from,'video_link'=>$video_link,'video_src'=>$video_src);
+                $data_vdo['video']  =   json_encode($video_details);
+                $this->db->where('product_id',$id);
+                $this->db->update('product',$data_vdo); 
+            }
+            $this->crud_model->set_category_data(0);
             recache();
         } else if ($para1 == "update") {
             $options = array();
@@ -1081,14 +1370,14 @@ class Admin extends CI_Controller
             $data['discount_type']      = $this->input->post('discount_type');
             $data['tax_type']           = $this->input->post('tax_type');
             $data['tag']                = $this->input->post('tag');
-			$data['update_time']        = time();
+            $data['update_time']        = time();
             $data['num_of_imgs']        = $num + $num_of_imgs;
             $data['front_image']        = $this->input->post('front_image');
             $additional_fields['name']  = json_encode($this->input->post('ad_field_names'));
             $additional_fields['value'] = json_encode($this->input->post('ad_field_values'));
             $data['additional_fields']  = json_encode($additional_fields);
-			
-			//File upload
+            
+            //File upload
             $this->crud_model->file_up("images", "product", $para2, 'multi');
             if($_FILES['product_file']['name'] !== ''){
                 $rand           = substr(hash('sha512', rand()), 0, 20);
@@ -1097,80 +1386,80 @@ class Admin extends CI_Controller
                 $folder = $this->db->get_where('general_settings', array('type' => 'file_folder'))->row()->value;
                 move_uploaded_file($_FILES['product_file']['tmp_name'], 'uploads/file_products/' . $folder .'/' . $name);
             }
-			
+            
             $this->db->where('product_id', $para2);
             $this->db->update('product', $data);
-			
-			if($_FILES['logo']['name'] !== ''){
+            
+            if($_FILES['logo']['name'] !== ''){
                 $path = $_FILES['logo']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data_logo['logo'] 		 = 'digital_logo_'.$para2.'.'.$ext;
-				$this->db->where('product_id' , $para2);
-				$this->db->update('product' , $data_logo);
-				$this->crud_model->file_up("logo", "digital_logo", $para2, '','no','.'.$ext);
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data_logo['logo']       = 'digital_logo_'.$para2.'.'.$ext;
+                $this->db->where('product_id' , $para2);
+                $this->db->update('product' , $data_logo);
+                $this->crud_model->file_up("logo", "digital_logo", $para2, '','no','.'.$ext);
             }
-			
-			//Requirements add
-			$requirements				=	array();
-			$req_title					=	$this->input->post('req_title');
-			$req_desc					=	$this->input->post('req_desc');
-			if(!empty($req_title)){
-				foreach($req_title as $i => $row){
-					$requirements[]			=	array('index'=>$i,'field'=>$row,'desc'=>$req_desc[$i]);
-				}
-			}
-			$data_req['requirements']			=	json_encode($requirements);
-			$this->db->where('product_id' , $para2);
-			$this->db->update('product' , $data_req);
-			
-			//vdo upload
-			$video_details				=	array();
-			if($this->input->post('upload_method') == 'upload'){				
-				$video 				= 	$_FILES['videoFile']['name'];
-				$ext   				= 	pathinfo($video,PATHINFO_EXTENSION);
-				move_uploaded_file($_FILES['videoFile']['tmp_name'],'uploads/video_digital_product/digital_'.$para2.'.'.$ext);
-				$video_src 			= 	'uploads/video_digital_product/digital_'.$para2.'.'.$ext;
-				$video_details[] 	= 	array('type'=>'upload','from'=>'local','video_link'=>'','video_src'=>$video_src);
-				$data_vdo['video']	=	json_encode($video_details);
-				$this->db->where('product_id',$para2);
-				$this->db->update('product',$data_vdo);		
-			}
-			elseif ($this->input->post('upload_method') == 'share'){
-				$video= json_decode($this->crud_model->get_type_name_by_id('product',$para2,'video'),true);
-				if($video[0]['type'] == 'upload'){
-					if(file_exists($video[0]['video_src'])){
-						unlink($video[0]['video_src']);			
-					}
-				}
-				$from 				= $this->input->post('site');
-				$video_link 		= $this->input->post('video_link');
-				$code				= $this->input->post('video_code');
-				if($from=='youtube'){
-					$video_src  	= 'https://www.youtube.com/embed/'.$code;
-				}else if($from=='dailymotion'){
-					$video_src   	= '//www.dailymotion.com/embed/video/'.$code;
-				}else if($from=='vimeo'){
-					$video_src   	= 'https://player.vimeo.com/video/'.$code;
-				}
-				$video_details[] 	= 	array('type'=>'share','from'=>$from,'video_link'=>$video_link,'video_src'=>$video_src);
-				$data_vdo['video']	=	json_encode($video_details);
-				$this->db->where('product_id',$para2);
-				$this->db->update('product',$data_vdo);	
-			}
-			elseif ($this->input->post('upload_method') == 'delete'){
-				$data_vdo['video']	=	'[]';
-				$this->db->where('product_id',$para2);
-				$this->db->update('product',$data_vdo);
-				
-				$video= json_decode($this->crud_model->get_type_name_by_id('product',$para2,'video'),true);
-				if($video[0]['type'] == 'upload'){
-					if(file_exists($video[0]['video_src'])){
-						unlink($video[0]['video_src']);			
-					}
-				}
-			}
-			
-			$this->crud_model->set_category_data(0);
+            
+            //Requirements add
+            $requirements               =   array();
+            $req_title                  =   $this->input->post('req_title');
+            $req_desc                   =   $this->input->post('req_desc');
+            if(!empty($req_title)){
+                foreach($req_title as $i => $row){
+                    $requirements[]         =   array('index'=>$i,'field'=>$row,'desc'=>$req_desc[$i]);
+                }
+            }
+            $data_req['requirements']           =   json_encode($requirements);
+            $this->db->where('product_id' , $para2);
+            $this->db->update('product' , $data_req);
+            
+            //vdo upload
+            $video_details              =   array();
+            if($this->input->post('upload_method') == 'upload'){                
+                $video              =   $_FILES['videoFile']['name'];
+                $ext                =   pathinfo($video,PATHINFO_EXTENSION);
+                move_uploaded_file($_FILES['videoFile']['tmp_name'],'uploads/video_digital_product/digital_'.$para2.'.'.$ext);
+                $video_src          =   'uploads/video_digital_product/digital_'.$para2.'.'.$ext;
+                $video_details[]    =   array('type'=>'upload','from'=>'local','video_link'=>'','video_src'=>$video_src);
+                $data_vdo['video']  =   json_encode($video_details);
+                $this->db->where('product_id',$para2);
+                $this->db->update('product',$data_vdo);     
+            }
+            elseif ($this->input->post('upload_method') == 'share'){
+                $video= json_decode($this->crud_model->get_type_name_by_id('product',$para2,'video'),true);
+                if($video[0]['type'] == 'upload'){
+                    if(file_exists($video[0]['video_src'])){
+                        unlink($video[0]['video_src']);         
+                    }
+                }
+                $from               = $this->input->post('site');
+                $video_link         = $this->input->post('video_link');
+                $code               = $this->input->post('video_code');
+                if($from=='youtube'){
+                    $video_src      = 'https://www.youtube.com/embed/'.$code;
+                }else if($from=='dailymotion'){
+                    $video_src      = '//www.dailymotion.com/embed/video/'.$code;
+                }else if($from=='vimeo'){
+                    $video_src      = 'https://player.vimeo.com/video/'.$code;
+                }
+                $video_details[]    =   array('type'=>'share','from'=>$from,'video_link'=>$video_link,'video_src'=>$video_src);
+                $data_vdo['video']  =   json_encode($video_details);
+                $this->db->where('product_id',$para2);
+                $this->db->update('product',$data_vdo); 
+            }
+            elseif ($this->input->post('upload_method') == 'delete'){
+                $data_vdo['video']  =   '[]';
+                $this->db->where('product_id',$para2);
+                $this->db->update('product',$data_vdo);
+                
+                $video= json_decode($this->crud_model->get_type_name_by_id('product',$para2,'video'),true);
+                if($video[0]['type'] == 'upload'){
+                    if(file_exists($video[0]['video_src'])){
+                        unlink($video[0]['video_src']);         
+                    }
+                }
+            }
+            
+            $this->crud_model->set_category_data(0);
             recache();
         } else if ($para1 == 'edit') {
             $page_data['product_data'] = $this->db->get_where('product', array(
@@ -1186,29 +1475,29 @@ class Admin extends CI_Controller
             $this->crud_model->download_product($para2);
         } else if ($para1 == 'can_download') {
             if($this->crud_model->can_download($para2)){
-				echo "yes";
-			} else{
-				echo "no";
-			}
+                echo "yes";
+            } else{
+                echo "no";
+            }
         } elseif ($para1 == 'delete') {
             $this->crud_model->file_dlt('product', $para2, '.jpg', 'multi');
-			unlink("uploads/digital_logo_image/" .$this->crud_model->get_type_name_by_id('product',$para2,'logo'));
-			$video=$this->crud_model->get_type_name_by_id('product',$para2,'video');
-			if($video!=='[]'){
-				$video_details= json_decode($video,true);
-				if($video_details[0]['type'] == 'upload'){
-					if(file_exists($video_details[0]['video_src'])){
-						unlink($video_details[0]['video_src']);			
-					}
-				}
-			}
+            unlink("uploads/digital_logo_image/" .$this->crud_model->get_type_name_by_id('product',$para2,'logo'));
+            $video=$this->crud_model->get_type_name_by_id('product',$para2,'video');
+            if($video!=='[]'){
+                $video_details= json_decode($video,true);
+                if($video_details[0]['type'] == 'upload'){
+                    if(file_exists($video_details[0]['video_src'])){
+                        unlink($video_details[0]['video_src']);         
+                    }
+                }
+            }
             $this->db->where('product_id', $para2);
             $this->db->delete('product');
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'list') {
             $this->db->order_by('product_id', 'desc');
-			$this->db->where('download=','ok');
+            $this->db->where('download=','ok');
             $page_data['all_product'] = $this->db->get('product')->result_array();
             $this->load->view('back/admin/digital_list', $page_data);
         } elseif ($para1 == 'list_data') {
@@ -1220,18 +1509,18 @@ class Admin extends CI_Controller
             if($search){
                 $this->db->like('title', $search, 'both');
             }
-			$this->db->where('download=','ok');
+            $this->db->where('download=','ok');
             $total= $this->db->get('product')->num_rows();
             $this->db->limit($limit);
-			if($sort == ''){
-				$sort = 'product_id';
-				$order = 'DESC';
-			}
+            if($sort == ''){
+                $sort = 'product_id';
+                $order = 'DESC';
+            }
             $this->db->order_by($sort,$order);
             if($search){
                 $this->db->like('title', $search, 'both');
             }
-			$this->db->where('download=','ok');
+            $this->db->where('download=','ok');
             $products   = $this->db->get('product', $limit, $offset)->result_array();
             $data       = array();
             foreach ($products as $row) {
@@ -1304,7 +1593,7 @@ class Admin extends CI_Controller
         } elseif ($para1 == 'product_by_sub') {
             echo $this->crud_model->select_html('product', 'product', 'title', 'add', 'demo-chosen-select required', '', 'sub_category', $para2, 'get_pro_res');
         } 
-		elseif ($para1 == 'pur_by_pro') {
+        elseif ($para1 == 'pur_by_pro') {
             echo $this->crud_model->get_type_name_by_id('product', $para2, 'purchase_price');
         }elseif ($para1 == 'add') {
             $this->load->view('back/admin/digital_add');
@@ -1343,7 +1632,7 @@ class Admin extends CI_Controller
             }
             $this->db->where('product_id', $product);
             $this->db->update('product', $data);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         } elseif ($para1 == 'add_discount_set') {
             $product               = $this->input->post('product');
@@ -1351,20 +1640,20 @@ class Admin extends CI_Controller
             $data['discount_type'] = $this->input->post('discount_type');
             $this->db->where('product_id', $product);
             $this->db->update('product', $data);
-			$this->crud_model->set_category_data(0);
+            $this->crud_model->set_category_data(0);
             recache();
         }elseif ($para1 == 'video_preview') {
-			if($para2 == 'youtube'){
-				echo '<iframe width="400" height="300" src="https://www.youtube.com/embed/'.$para3.'" frameborder="0"></iframe>';
-			}else if($para2 == 'dailymotion'){
-				echo '<iframe width="400" height="300" src="//www.dailymotion.com/embed/video/'.$para3.'" frameborder="0"></iframe>';
-			}else if($para2 == 'vimeo'){
-				echo '<iframe src="https://player.vimeo.com/video/'.$para3.'" width="400" height="300" frameborder="0"></iframe>';
-			}
-		}else {
+            if($para2 == 'youtube'){
+                echo '<iframe width="400" height="300" src="https://www.youtube.com/embed/'.$para3.'" frameborder="0"></iframe>';
+            }else if($para2 == 'dailymotion'){
+                echo '<iframe width="400" height="300" src="//www.dailymotion.com/embed/video/'.$para3.'" frameborder="0"></iframe>';
+            }else if($para2 == 'vimeo'){
+                echo '<iframe src="https://player.vimeo.com/video/'.$para3.'" width="400" height="300" frameborder="0"></iframe>';
+            }
+        }else {
             $page_data['page_name']   = "digital";
             $this->db->order_by('product_id', 'desc');
-			$this->db->where('download=','ok');
+            $this->db->where('download=','ok');
             $page_data['all_product'] = $this->db->get('product')->result_array();
             $this->load->view('back/index', $page_data);
         }
@@ -1374,11 +1663,11 @@ class Admin extends CI_Controller
     function stock($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('stock')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
-			redirect(base_url() . 'index.php/admin');
-		}
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'do_add') {
             $data['type']         = 'add';
             $data['category']     = $this->input->post('category');
@@ -1444,21 +1733,459 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
+
+    /* Product Bundle add, edit, view, delete, stock increase, decrease, discount */
+    function product_bundle($para1 = '', $para2 = '', $para3 = '', $para4 = '')
+    {
+        if (!$this->crud_model->admin_permission('product_bundle')) {
+            redirect(base_url() . 'admin');
+        }
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
+        if ($para1 == 'do_add') {
+            if ($_FILES["images"]['name'][0] == '') {
+                $num_of_imgs = 0;
+            } else {
+                $num_of_imgs = count($_FILES["images"]['name']);
+            }
+            $products = array();
+            $data['num_of_imgs']        = $num_of_imgs;
+            $data['title']              = $this->input->post('title');
+            $data['description']        = $this->input->post('description');
+            $data['sale_price']         = $this->input->post('sale_price');
+            $data['purchase_price']     = $this->input->post('purchase_price');
+            $data['add_timestamp']      = time();
+            $data['featured']           = 'no';
+            $data['status']             = 'ok';
+            $data['rating_user']        = '[]';
+            $data['tax']                = $this->input->post('tax');
+            $data['discount']           = $this->input->post('discount');
+            $data['discount_type']      = $this->input->post('discount_type');
+            $data['tax_type']           = $this->input->post('tax_type');
+            $data['shipping_cost']      = $this->input->post('shipping_cost');
+            $data['is_bundle']          = 'yes';
+            $data['tag']                = $this->input->post('tag');
+            $data['current_stock']      = '1';
+            $data['unit']               = $this->input->post('unit');
+            $product_no                 = $this->input->post('product_no');
+            $product_id                 = $this->input->post('product');
+            $product_quantity           = $this->input->post('quantity');
+            $data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
+            if(count($product_id) > 0){
+                foreach ($product_id as $i => $row) {
+                    $products[]              =   array(
+                                                    'product_no' => $product_no[$i],
+                                                    'product_id' => $product_id[$i],
+                                                    'quantity' => $product_quantity[$i],
+                                                );
+                }
+            }
+            $data['products']            = json_encode($products);
+            $this->db->insert('product', $data);
+            $id = $this->db->insert_id();
+            $this->benchmark->mark_time();
+            $this->crud_model->file_up("images", "product", $id, 'multi');
+            recache();
+        } elseif ($para1 == 'add') {
+            $this->load->view('back/admin/product_bundle_add');
+        } else if ($para1 == 'edit') {
+            $page_data['product_bundle_data'] = $this->db->get_where('product', array(
+                'product_id' => $para2
+            ))->result_array();
+            $this->load->view('back/admin/product_bundle_edit', $page_data);
+        } elseif($para1 == 'update') {
+            if ($_FILES["images"]['name'][0] == '') {
+                $num_of_imgs = 0;
+            } else {
+                $num_of_imgs = count($_FILES["images"]['name']);
+            }
+            $num                        = $this->crud_model->get_type_name_by_id('product', $para2, 'num_of_imgs');
+            $products = array();
+            $data['num_of_imgs']        = $num + $num_of_imgs;
+            $data['title']              = $this->input->post('title');
+            $data['description']        = $this->input->post('description');
+            $data['sale_price']         = $this->input->post('sale_price');
+            $data['purchase_price']     = $this->input->post('purchase_price');
+            $data['update_time']        = time();
+            $data['tax']                = $this->input->post('tax');
+            $data['discount']           = $this->input->post('discount');
+            $data['discount_type']      = $this->input->post('discount_type');
+            $data['tax_type']           = $this->input->post('tax_type');
+            $data['shipping_cost']      = $this->input->post('shipping_cost');
+            $data['tag']                = $this->input->post('tag');
+            $data['unit']               = $this->input->post('unit');
+            $product_no                 = $this->input->post('product_no');
+            $product_id                 = $this->input->post('product');
+            $product_quantity           = $this->input->post('quantity');
+            $data['added_by']           = json_encode(array('type'=>'admin','id'=>$this->session->userdata('admin_id')));
+            if(count($product_id) > 0){
+                foreach ($product_id as $i => $row) {
+                    $products[]              =   array(
+                                                    'product_no' => $product_no[$i],
+                                                    'product_id' => $product_id[$i],
+                                                    'quantity' => $product_quantity[$i],
+                                                );
+                }
+            }
+            $data['products']            = json_encode($products);
+            $this->crud_model->file_up("images", "product", $para2, 'multi');
+            
+            $this->db->where('product_id', $para2);
+            $this->db->update('product', $data);
+            recache();
+        } elseif ($para1 == 'delete') {
+            $this->crud_model->file_dlt('product', $para2, '.jpg', 'multi');
+            $this->db->where('product_id', $para2);
+            $this->db->delete('product');
+            recache();
+        } else if ($para1 == 'view') {
+            $page_data['product_bundle_data'] = $this->db->get_where('product', array(
+                'product_id' => $para2
+            ))->result_array();
+            $this->load->view('back/admin/product_bundle_view', $page_data);
+        } else if ($para1 == 'do_destroy') {
+            
+        } elseif ($para1 == 'list') {
+            $this->db->order_by('product_id', 'desc');
+            $page_data['all_product_bundle'] = $this->db->get_where('product', array('is_bundle' => 'yes'))->result_array();
+            $this->load->view('back/admin/product_bundle_list', $page_data);
+        } elseif ($para1 == 'list_data') {
+            $limit      = $this->input->get('limit');
+            $search     = $this->input->get('search');
+            $order      = $this->input->get('order');
+            $offset     = $this->input->get('offset');
+            $sort       = $this->input->get('sort');
+            if($search){
+                $this->db->like('title', $search, 'both');
+            }
+            $this->db->where('is_bundle', 'yes');
+            $total= $this->db->get('product')->num_rows();
+            $this->db->limit($limit);
+            if($sort == ''){
+                $sort = 'product_id';
+                $order = 'DESC';
+            }
+            $this->db->order_by($sort,$order);
+            if($search){
+                $this->db->like('title', $search, 'both');
+            }
+            $product_bundles   = $this->db->get_where('product', array('is_bundle' => 'yes'), $limit, $offset)->result_array();
+            $data       = array();
+            foreach ($product_bundles as $row) {
+
+                $res    = array(
+                             'image' => '',
+                             'title' => '',
+                             'publish' => '',
+                             'featured' => '',
+                             'options' => ''
+                          );
+
+                $res['image']  = '<img class="img-sm" style="height:auto !important; border:1px solid #ddd;padding:2px; border-radius:2px !important;" src="'.$this->crud_model->file_view('product',$row['product_id'],'','','thumb','src','multi','one').'"  />';
+                $res['title']  = $row['title'];
+
+                if($row['status'] == 'ok'){
+                    $res['publish']  = '<input id="pub_'.$row['product_id'].'" class="sw1" type="checkbox" data-id="'.$row['product_id'].'" checked />';
+                } else {
+                    $res['publish']  = '<input id="pub_'.$row['product_id'].'" class="sw1" type="checkbox" data-id="'.$row['product_id'].'" />';
+                }
+                if($row['current_stock'] > 0){ 
+                    $res['current_stock']  = $row['current_stock'].$row['unit'].'(s)';                     
+                } else {
+                    $res['current_stock']  = '<span class="label label-danger">'.translate('out_of_stock').'</span>';
+                }
+                if($row['featured'] == 'ok'){
+                    $res['featured'] = '<input id="fet_'.$row['product_id'].'" class="sw2" type="checkbox" data-id="'.$row['product_id'].'" checked />';
+                } else {
+                    $res['featured'] = '<input id="fet_'.$row['product_id'].'" class="sw2" type="checkbox" data-id="'.$row['product_id'].'" />';
+                }
+                if($row['deal'] == 'ok'){
+                    $res['deal'] = '<input id="del_'.$row['product_id'].'" class="sw3" type="checkbox" data-id="'.$row['product_id'].'" checked />';
+                } else {
+                    $res['deal'] = '<input id="del_'.$row['product_id'].'" class="sw3" type="checkbox" data-id="'.$row['product_id'].'" />';
+                }
+                //add html for action
+                $res['options'] = "  <a class=\"btn btn-info btn-xs btn-labeled fa fa-location-arrow\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_set_full('view','".translate('view_product_bundle')."','".translate('successfully_viewed!')."','product_bundle_view','".$row['product_id']."');proceed('to_list');\" data-original-title=\"View\" data-container=\"body\">
+                                    ".translate('view')."
+                            </a>
+                            <a class=\"btn btn-purple btn-xs btn-labeled fa fa-tag\" data-toggle=\"tooltip\"
+                                onclick=\"ajax_modal('add_discount','".translate('view_discount')."','".translate('viewing_discount!')."','add_bundle_discount','".$row['product_id']."')\" data-original-title=\"Edit\" data-container=\"body\">
+                                    ".translate('discount')."
+                            </a>
+                            <a class=\"btn btn-mint btn-xs btn-labeled fa fa-plus-square\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_modal('add_stock','".translate('add_bundle_quantity')."','".translate('quantity_added!')."','bundle_stock_add','".$row['product_id']."')\" data-original-title=\"Edit\" data-container=\"body\">
+                                    ".translate('stock')."
+                            </a>
+                            <a class=\"btn btn-dark btn-xs btn-labeled fa fa-minus-square\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_modal('destroy_stock','".translate('reduce_bundle_quantity')."','".translate('quantity_reduced!')."','destroy_bundle_stock','".$row['product_id']."')\" data-original-title=\"Edit\" data-container=\"body\">
+                                    ".translate('destroy')."
+                            </a>
+                            
+                            <a class=\"btn btn-success btn-xs btn-labeled fa fa-wrench\" data-toggle=\"tooltip\" 
+                                onclick=\"ajax_set_full('edit','".translate('edit_product_bundle')."','".translate('successfully_edited!')."','product_bundle_edit','".$row['product_id']."');proceed('to_list');\" data-original-title=\"Edit\" data-container=\"body\">
+                                    ".translate('edit')."
+                            </a>
+                            
+                            <a onclick=\"delete_confirm('".$row['product_id']."','".translate('really_want_to_delete_this?')."')\" 
+                                class=\"btn btn-danger btn-xs btn-labeled fa fa-trash\" data-toggle=\"tooltip\" data-original-title=\"Delete\" data-container=\"body\">
+                                    ".translate('delete')."
+                            </a>";
+                $data[] = $res;
+            }
+            $result = array(
+                             'total' => $total,
+                             'rows' => $data
+                           );
+
+            echo json_encode($result);
+
+        } elseif ($para1 == 'add_discount') {
+            $data['product_bundle'] = $para2;
+            $this->load->view('back/admin/product_bundle_add_discount', $data);
+        } elseif ($para1 == 'add_discount_set') {
+            $product_bundle               = $this->input->post('product_bundle');
+            $data['discount']      = $this->input->post('discount');
+            $data['discount_type'] = $this->input->post('discount_type');
+            $this->db->where('product_id', $product_bundle);
+            $this->db->update('product', $data);
+            recache();
+        } elseif ($para1 == 'add_stock') {
+            $data['product_bundle'] = $para2;
+            $this->load->view('back/admin/product_bundle_stock_add', $data);
+        } elseif ($para1 == 'destroy_stock') {
+            $data['product_bundle'] = $para2;
+            $this->load->view('back/admin/product_bundle_stock_destroy', $data);
+        } elseif ($para1 == 'bundle_publish_set') {
+            $product_bundle = $para2;
+            if ($para3 == 'true') {
+                $data['status'] = 'ok';
+            } else {
+                $data['status'] = '0';
+            }
+            $this->db->where('product_id', $product_bundle);
+            $this->db->update('product', $data);
+            recache();
+        } elseif ($para1 == 'bundle_featured_set') {
+            $product_bundle = $para2;
+            if ($para3 == 'true') {
+                $data['featured'] = 'ok';
+            } else {
+                $data['featured'] = '0';
+            }
+            $this->db->where('product_id', $product_bundle);
+            $this->db->update('product', $data);
+            recache();
+        } elseif ($para1 == 'bundle_deal_set') {
+            $product_bundle = $para2;
+            if ($para3 == 'true') {
+                $data['deal'] = 'ok';
+            } else {
+                $data['deal'] = '0';
+            }
+            $this->db->where('product_id', $product_bundle);
+            $this->db->update('product', $data);
+            recache();
+        } else if ($para1 == 'dlt_img') {
+            $a = explode('_', $para2);
+            $this->crud_model->file_dlt('product', $a[0], '.jpg', 'multi', $a[1]);
+            recache();
+        } elseif ($para1 == 'sub_by_cat') {
+            echo $this->crud_model->select_html('sub_category', 'sub_category[]', 'sub_category_name', 'add', 'demo-chosen-select required', '', 'category', $para2, 'get_brnd');
+        } elseif ($para1 == 'brand_by_sub') {
+            $brands=json_decode($this->crud_model->get_type_name_by_id('sub_category',$para2,'brand'),true);
+            /*if(empty($brands)){
+                echo translate("<p class='control-label'>No brands are available for this sub category</p>");
+            } else {*/
+                echo $this->crud_model->select_html('brand', 'brand[]', 'name', 'add', 'demo-chosen-select required', '', 'brand_id', $brands, 'get_prod', 'multi', 'none');
+            // }
+        } elseif ($para1 == 'prod_by_brand') {
+            if ($para2 == 'none') {
+                $prod_ids = array();
+                $products = $this->db->get_where('product', array('sub_category' => $para3, 'category' => $para4))->result_array();
+                foreach ($products as $product) {
+                    $prod_ids[] = $product['product_id'];
+                }
+                if(empty($prod_ids)){
+                    echo translate("<p class='control-label'>No Products are available for this brand</p>");
+                } else {
+                    echo $this->crud_model->select_html('product', 'product[]', 'title', 'add', 'demo-chosen-select required', '', 'product_id', $prod_ids, '', 'multi');
+                }
+            } else {
+                $prod_ids = array();
+                $products = $this->db->get_where('product', array('brand' => $para2, 'sub_category' => $para3, 'category' => $para4))->result_array();
+                foreach ($products as $product) {
+                    $prod_ids[] = $product['product_id'];
+                }
+                if(empty($prod_ids)){
+                    echo translate("<p class='control-label'>No Products are available for this brand</p>");
+                } else {
+                    echo $this->crud_model->select_html('product', 'product[]', 'title', 'add', 'demo-chosen-select required', '', 'product_id', $prod_ids, '', 'multi');
+                }
+            }
+        } else {
+            $page_data['page_name'] = "product_bundle";
+            
+            $this->load->view('back/index', $page_data);
+        }
+    } 
     
+    /* Product Bundle Stock add, edit, view, delete, stock increase, decrease, discount */
+    function bundle_stock($para1 = '', $para2 = '')
+    {
+        if (!$this->crud_model->admin_permission('bundle_stock')) {
+            redirect(base_url() . 'admin');
+        }
+        if ($this->crud_model->get_type_name_by_id('general_settings','68','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
+        if ($para1 == 'do_add') {
+            $data['type']         = 'add';
+            $data['product_bundle']      = $this->input->post('product_bundle');
+            $data['quantity']     = $this->input->post('quantity');
+            $data['rate']         = $this->input->post('rate');
+            $data['total']        = $this->input->post('total');
+            $data['reason_note']  = $this->input->post('reason_note');
+            $data['datetime']     = time();
+            $this->db->insert('bundle_stock', $data);
+            $prev_quantity          = $this->crud_model->get_type_name_by_id('product', $data['product_bundle'], 'current_stock');
+            $data1['current_stock'] = $prev_quantity + $data['quantity'];
+            $this->db->where('product_id', $data['product_bundle']);
+            $this->db->update('product', $data1);
+            recache();
+        } else if ($para1 == 'do_destroy') {
+            $data['type']         = 'destroy';
+            $data['product_bundle']      = $this->input->post('product_bundle');
+            $data['quantity']     = $this->input->post('quantity');
+            $data['total']        = $this->input->post('total');
+            $data['reason_note']  = $this->input->post('reason_note');
+            $data['datetime']     = time();
+            $this->db->insert('bundle_stock', $data);
+            $prev_quantity = $this->crud_model->get_type_name_by_id('product', $data['product_bundle'], 'current_stock');
+            $current       = $prev_quantity - $data['quantity'];
+            if ($current <= 0) {
+                $current = 0;
+            }
+            $data1['current_stock'] = $current;
+            $this->db->where('product_id', $data['product_bundle']);
+            $this->db->update('product', $data1);
+            recache();
+        } else {
+            $page_data['page_name'] = "bundle_stock";
+            
+            $this->load->view('back/index', $page_data);
+        }
+    } 
+
+    function delete_all_categories($para1 = '')
+    {
+        if (!$this->crud_model->admin_permission('delete_all_categories')) {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'delete') {
+            $dir1 = 'uploads/category_image';
+            $leave_files1 = array('default.jpg');
+
+            foreach( glob("$dir1/*") as $file1 ) {
+                if( !in_array(basename($file1), $leave_files1) )
+                    unlink($file1);
+            }
+            $dir2 = 'uploads/sub_category_image';
+            $leave_files2 = array('default.jpg');
+
+            foreach( glob("$dir2/*") as $file2 ) {
+                if( !in_array(basename($file2), $leave_files2) )
+                    unlink($file2);
+            }
+            $this->db->empty_table('category');
+            $this->db->empty_table('sub_category');
+            recache();
+        } else {
+            $page_data['page_name'] = "delete_all_categories";
+            $this->load->view('back/index', $page_data);
+        }
+    }
+
+    function delete_all_products($para1 = '')
+    {
+        if (!$this->crud_model->admin_permission('delete_all_products')) {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'delete') {
+            $dir = 'uploads/product_image';
+            $leave_files = array('default.jpg');
+
+            foreach( glob("$dir/*") as $file ) {
+                if( !in_array(basename($file), $leave_files) )
+                    unlink($file);
+            }
+            // $this->db->delete('product');
+            $this->db->empty_table('product');
+            //echo $this->db->last_query();
+            recache();
+        } else {
+            $page_data['page_name'] = "delete_all_products";
+            $this->load->view('back/index', $page_data);
+        }
+    }
+
+    function delete_all_brands($para1 = '')
+    {
+        if (!$this->crud_model->admin_permission('delete_all_brands')) {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'delete') {
+            $dir = 'uploads/brand_image';
+            $leave_files = array('default.jpg');
+
+            foreach( glob("$dir/*") as $file ) {
+                if( !in_array(basename($file), $leave_files) )
+                    unlink($file);
+            }
+            $this->db->empty_table('brand');
+            recache();
+        } else {
+            $page_data['page_name'] = "delete_all_brands";
+            $this->load->view('back/index', $page_data);
+        }
+    }
+
+    function delete_all_classified($para1 = '')
+    {
+        if (!$this->crud_model->admin_permission('delete_all_classified')) {
+            redirect(base_url() . 'admin');
+        } 
+        if ($para1 == 'delete') {
+            $dir = 'uploads/customer_product_image';
+            $leave_files = array('default.jpg');
+
+            foreach( glob("$dir/*") as $file ) {
+                if( !in_array(basename($file), $leave_files) )
+                    unlink($file);
+            }
+            $this->db->empty_table('customer_product');
+            recache();
+        } else {
+            $page_data['page_name'] = "delete_all_classified";
+            $this->load->view('back/index', $page_data);
+        }
+    }
+
     /*Frontend Banner Management */
     function banner($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('banner')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "set") {
             $data['link']   = $this->input->post('link');
             $data['status'] = $this->input->post('status');
-			if($_FILES['img']['name'] !== ''){
+            if($_FILES['img']['name'] !== ''){
                 $path = $_FILES['img']['name'];
-				$ext = pathinfo($path, PATHINFO_EXTENSION);
-				$data['image_ext'] 		 = '.'.$ext;
-				$this->crud_model->file_up("img", "banner", $para2, '','','.'.$ext);
+                $ext = pathinfo($path, PATHINFO_EXTENSION);
+                $data['image_ext']       = '.'.$ext;
+                $this->crud_model->file_up("img", "banner", $para2, '','','.'.$ext);
             }
             $this->db->where('banner_id', $para2);
             $this->db->update('banner', $data);
@@ -1480,7 +2207,7 @@ class Admin extends CI_Controller
     function sales($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('sale')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'delete') {
             $carted = $this->db->get_where('stock', array(
@@ -1540,9 +2267,9 @@ class Admin extends CI_Controller
                         $page_data['comment'] = '';
                     }
                 }
-				else{
+                else{
                     $page_data['delivery_status'] = '';
-				}
+                }
             }
             $payment_status = json_decode($this->db->get_where('sale', array(
                 'sale_id' => $para2
@@ -1551,9 +2278,9 @@ class Admin extends CI_Controller
                 if(isset($row['admin'])){
                     $page_data['payment_status'] = $row['status'];
                 }
-				else{
+                else{
                     $page_data['payment_status'] = '';
-				}
+                }
             }
             
             $this->load->view('back/admin/sales_delivery_payment', $page_data);
@@ -1600,7 +2327,7 @@ class Admin extends CI_Controller
     function user($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('user')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['username']    = $this->input->post('user_name');
@@ -1641,7 +2368,7 @@ class Admin extends CI_Controller
     function membership_payment($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('membership_payment') || $this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'delete') {
             $this->db->where('membership_payment_id', $para2);
@@ -1679,7 +2406,7 @@ class Admin extends CI_Controller
     function vendor($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('vendor') || $this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
 
         if ($para1 == 'delete') {
@@ -1695,9 +2422,9 @@ class Admin extends CI_Controller
             $this->crud_model->set_category_data(0);
             /* delete vendor products end */
 
-			$this->db->where('vendor_id', $para2);
+            $this->db->where('vendor_id', $para2);
             $this->db->delete('vendor');
-			
+            
             recache();
         } else if ($para1 == 'list') {
             $this->db->order_by('vendor_id', 'desc');
@@ -1714,14 +2441,14 @@ class Admin extends CI_Controller
         } else if ($para1 == 'approval') {
             $page_data['vendor_id'] = $para2;
             $page_data['status'] = $this->db->get_where('vendor', array(
-											'vendor_id' => $para2
-										))->row()->status;
+                                            'vendor_id' => $para2
+                                        ))->row()->status;
             $this->load->view('back/admin/vendor_approval', $page_data);
         } else if ($para1 == 'add') {
             $this->load->view('back/admin/vendor_add');
         } else if ($para1 == 'approval_set') {
             $vendor = $para2;
-			$approval = $this->input->post('approval');
+            $approval = $this->input->post('approval');
             if ($approval == 'ok') {
                 $data['status'] = 'approved';
             } else {
@@ -1758,9 +2485,9 @@ class Admin extends CI_Controller
                 //$this->paypal->add_field('amount', $grand_total);
                 $this->paypal->add_field('custom', $invoice_id);
                 $this->paypal->add_field('business', $paypal_email);
-                $this->paypal->add_field('notify_url', base_url() . 'index.php/admin/paypal_ipn');
-                $this->paypal->add_field('cancel_return', base_url() . 'index.php/admin/paypal_cancel');
-                $this->paypal->add_field('return', base_url() . 'index.php/admin/paypal_success');
+                $this->paypal->add_field('notify_url', base_url() . 'admin/paypal_ipn');
+                $this->paypal->add_field('cancel_return', base_url() . 'admin/paypal_cancel');
+                $this->paypal->add_field('return', base_url() . 'admin/paypal_success');
                 
                 $this->paypal->submit_paypal_post();
                 // submit the fields to paypal
@@ -1786,7 +2513,7 @@ class Admin extends CI_Controller
                 $this->twocheckout_lib->add_field('cart_order_id', $invoice_id);   //Required - Cart ID
                 $this->twocheckout_lib->add_field('total',$this->cart->format_number($amount_in_usd));          
                 
-                $this->twocheckout_lib->add_field('x_receipt_link_url', base_url().'index.php/admin/twocheckout_success');
+                $this->twocheckout_lib->add_field('x_receipt_link_url', base_url().'admin/twocheckout_success');
                 $this->twocheckout_lib->add_field('demo', $this->twocheckout_lib->demo);                    //Either Y or N
                 
                 $this->twocheckout_lib->submit_form();
@@ -1818,13 +2545,13 @@ class Admin extends CI_Controller
                 //$this->vouguepay->add_field('custom', $sale_id);
                 //$this->vouguepay->add_field('business', $vouguepay_email);
 
-                $this->vouguepay->add_field('notify_url', base_url() . 'index.php/admin/vouguepay_ipn');
-                $this->vouguepay->add_field('fail_url', base_url() . 'index.php/admin/vouguepay_cancel');
-                $this->vouguepay->add_field('success_url', base_url() . 'index.php/admin/vouguepay_success');
+                $this->vouguepay->add_field('notify_url', base_url() . 'admin/vouguepay_ipn');
+                $this->vouguepay->add_field('fail_url', base_url() . 'admin/vouguepay_cancel');
+                $this->vouguepay->add_field('success_url', base_url() . 'admin/vouguepay_success');
                 
                 $this->vouguepay->submit_vouguepay_post();
                 // submit the fields to vouguepay
-            } else if ($method == 'stripe') {
+            }else if ($method == 'stripe') {
                 if($this->input->post('stripeToken')) {
                                     
                     $vendor         = $para2;
@@ -1865,18 +2592,48 @@ class Admin extends CI_Controller
                         $data['payment_details']    = "Customer Info: \n".json_encode($vendora,true)."\n \n Charge Info: \n".json_encode($charge,true);
                         
                         $this->db->insert('vendor_invoice', $data);
-                        
-                        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+
+                        $this->email_model->vendor_payment($vendor,$amount);
+
+                        redirect(base_url() . 'admin/vendor/', 'refresh');
                     } else {
                         $this->session->set_flashdata('alert', 'unsuccessful_stripe');
-                        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+                        redirect(base_url() . 'admin/vendor/', 'refresh');
                     }
                     
                 } else{
                     $this->session->set_flashdata('alert', 'unsuccessful_stripe');
-                    redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+                    redirect(base_url() . 'admin/vendor/', 'refresh');
                 }
+            }elseif ($method == 'pum') {
+                $pum_key  = $this->crud_model->get_type_name_by_id('vendor', $vendor, 'pum_merchant_key');
+                $pum_salt  = $this->crud_model->get_type_name_by_id('vendor', $vendor, 'pum_merchant_salt');
+                $data['vendor_id']      = $vendor;
+                $data['amount']         = $this->input->post('amount');
+                $data['status']         = 'due';
+                $data['method']         = 'payUmoney';
+                $data['timestamp']      = time();
 
+                $this->db->insert('vendor_invoice', $data);
+                $invoice_id           = $this->db->insert_id();
+                $this->session->set_userdata('invoice_id', $invoice_id);
+                
+                /****TRANSFERRING USER TO PUM TERMINAL****/
+                    $this->pum->add_field('key', $pum_key);
+                    $this->pum->add_field('txnid',substr(hash('sha256', mt_rand() . microtime()), 0, 20));
+                    $this->pum->add_field('amount', $this->cart->format_number($amount_in_usd));
+                    $this->pum->add_field('firstname', $this->db->get_where('vendor', array('vendor_id' => $vendor))->row()->name);
+                    $this->pum->add_field('email', $this->db->get_where('vendor', array('vendor_id' => $vendor))->row()->email);
+                    $this->pum->add_field('phone', 'Not Given');
+                    $this->pum->add_field('productinfo', 'Payment with PayUmoney');
+                    $this->pum->add_field('service_provider', 'payu_paisa');
+                    $this->pum->add_field('udf1', $vendor);
+                    
+                    $this->pum->add_field('surl', base_url().'admin/vendor_pum_success');
+                    $this->pum->add_field('furl', base_url().'admin/vendor_pum_failure');
+                    
+                    // submit the fields to pum
+                    $this->pum->submit_pum_post();
             } else if ($method == 'cash') {
                 $data['vendor_id']          = $para2;
                 $data['amount']             = $this->input->post('amount');
@@ -1885,24 +2642,78 @@ class Admin extends CI_Controller
                 $data['timestamp']          = time();
                 $data['payment_details']    = "";
                 $this->db->insert('vendor_invoice', $data);
-                redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+                
+                $this->email_model->vendor_payment($para2,$data['amount']);
+                redirect(base_url() . 'admin/vendor/', 'refresh');
             }
-        } else {
+        }else {
             $page_data['page_name'] = "vendor";
             $page_data['all_vendors'] = $this->db->get('vendor')->result_array();
             $this->load->view('back/index', $page_data);
         }
     }
 
+    function vendor_pum_success()
+    {
+        $status         =   $_POST["status"];
+        $firstname      =   $_POST["firstname"];
+        $amount         =   $_POST["amount"];
+        $txnid          =   $_POST["txnid"];
+        $posted_hash    =   $_POST["hash"];
+        $key            =   $_POST["key"];
+        $productinfo    =   $_POST["productinfo"];
+        $email          =   $_POST["email"];
+        $udf1           =   $_POST['udf1'];
+        $salt           =   $this->Crud_model->get_settings_value('business_settings', 'pum_merchant_salt', 'value');
 
+        if (isset($_POST["additionalCharges"])) {
+            $additionalCharges = $_POST["additionalCharges"];
+            $retHashSeq = $additionalCharges.'|'.$salt.'|'.$status.'||||||||||'.$udf1.'|'.$email.'|'.$firstname.'|'.$productinfo.'|'.$amount.'|'.$txnid.'|'.$key;
+        } else {
+            $retHashSeq = $salt.'|'.$status.'||||||||||'.$udf1.'|'.$email.'|'.$firstname.'|'.$productinfo.'|'.$amount.'|'.$txnid.'|'.$key;
+        }
+        $hash = hash("sha512", $retHashSeq);
 
+        if ($hash != $posted_hash) {
+            $invoice_id = $this->session->userdata('invoice_id');
+            $this->db->where('vendor_invoice_id', $invoice_id);
+            $this->db->delete('vendor_invoice');
+            $this->session->set_userdata('vendor_invoice_id', '');
+            $this->session->set_flashdata('alert', 'payment_cancel');
+            redirect(base_url() . 'admin/vendor/', 'refresh');
+        } else {
+
+            $data['status']             = 'paid';
+            $data['payment_details']    = json_encode($_POST);
+            $invoice_id                 = $_POST['custom'];
+            $this->db->where('vendor_invoice_id', $invoice_id);
+            $this->db->update('vendor_invoice', $data);
+
+            $vendor=$this->db->get_where('vendor_invoice',array('vendor_invoice_id'=>$invoice_id))->result_array()->row->vendor_id;
+            $this->email_model->vendor_payment($vendor,$amount);
+            $this->session->set_userdata('vendor_invoice_id', '');
+            redirect(base_url() . 'admin/vendor/', 'refresh');
+        }
+    }
+
+    function vendor_pum_failure()
+    {
+        $invoice_id = $this->session->userdata('invoice_id');
+        $this->db->where('vendor_invoice_id', $invoice_id);
+        $this->db->delete('vendor_invoice');
+        $this->session->set_userdata('vendor_invoice_id', '');
+        $this->session->set_flashdata('alert', 'payment_cancel');
+        redirect(base_url() . 'admin/vendor/', 'refresh');
+    }
     /* wallet_load Management */
     function wallet_load($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('user')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-
+        if ($this->crud_model->get_type_name_by_id('general_settings','84','value') !== 'ok') {
+            redirect(base_url() . 'admin');
+        }
         if ($para1 == 'delete') {
             $this->db->where('wallet_load_id', $para2);
             $this->db->delete('wallet_load');
@@ -1970,6 +2781,9 @@ class Admin extends CI_Controller
             $invoice_id                 = $_POST['custom'];
             $this->db->where('vendor_invoice_id', $invoice_id);
             $this->db->update('vendor_invoice', $data);
+
+            $vendor=$this->db->get_where('vendor_invoice',array('vendor_invoice_id'=>$invoice_id))->result_array()->row->vendor_id;
+            $this->email_model->vendor_payment($vendor,$amount);
         }
     }
     
@@ -1982,14 +2796,14 @@ class Admin extends CI_Controller
         $this->db->delete('vendor_invoice');
         $this->session->set_userdata('vendor_invoice_id', '');
         $this->session->set_flashdata('alert', 'payment_cancel');
-        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+        redirect(base_url() . 'admin/vendor/', 'refresh');
     }
     
     /* FUNCTION: Loads after successful paypal payment*/
     function paypal_success()
     {
         $this->session->set_userdata('invoice_id', '');
-        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+        redirect(base_url() . 'admin/vendor/', 'refresh');
     }
     
     function twocheckout_success()
@@ -2008,7 +2822,10 @@ class Admin extends CI_Controller
             $invoice_id                 = $data2['response']['cart_order_id'];
             $this->db->where('vendor_invoice_id', $invoice_id);
             $this->db->update('vendor_invoice', $data1);
-            redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+
+            $vendor=$this->db->get_where('vendor_invoice',array('vendor_invoice_id'=>$invoice_id))->result_array()->row->vendor_id;
+            $this->email_model->vendor_payment($vendor,$amount);
+            redirect(base_url() . 'admin/vendor/', 'refresh');
 
         } else {
             //var_dump($data2['response']);
@@ -2018,7 +2835,7 @@ class Admin extends CI_Controller
             $this->session->set_userdata('invoice_id', '');
             $this->session->set_userdata('vendor_id', '');
             $this->session->set_flashdata('alert', 'payment_cancel');
-            redirect(base_url() . 'index.php/admin/vendor', 'refresh');
+            redirect(base_url() . 'admin/vendor', 'refresh');
         }
     }
     /* FUNCTION: Verify vouguepay payment by IPN*/
@@ -2034,6 +2851,9 @@ class Admin extends CI_Controller
             $data['status'] = 'paid';
             $this->db->where('vendor_invoice_id', $invoice_id);
             $this->db->update('vendor_invoice', $data);
+            
+            $vendor=$this->db->get_where('vendor_invoice',array('vendor_invoice_id'=>$invoice_id))->result_array()->row->vendor_id;
+            $this->email_model->vendor_payment($vendor,$amount);
         }
     }
     
@@ -2045,7 +2865,7 @@ class Admin extends CI_Controller
         $this->db->delete('vendor_invoice');
         $this->session->set_userdata('invoice_id', '');
         $this->session->set_flashdata('alert', 'payment_cancel');
-        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+        redirect(base_url() . 'admin/vendor/', 'refresh');
     }
     
     /* FUNCTION: Loads after successful vouguepay payment*/
@@ -2056,53 +2876,53 @@ class Admin extends CI_Controller
         
         //$this->crud_model->email_invoice($sale_id);
         $this->session->set_userdata('invoice_id', '');
-        redirect(base_url() . 'index.php/admin/vendor/', 'refresh');
+        redirect(base_url() . 'admin/vendor/', 'refresh');
     }
 
 
-	/* Pay to Vendor from Admin  */
-	
-	function pay_to_vendor($para1='',$para2=''){
-		if (!$this->crud_model->admin_permission('pay_to_vendor')) {
-            redirect(base_url() . 'index.php/admin');
+    /* Pay to Vendor from Admin  */
+    
+    function pay_to_vendor($para1='',$para2=''){
+        if (!$this->crud_model->admin_permission('pay_to_vendor')) {
+            redirect(base_url() . 'admin');
         }
-		if($para1 == 'list'){
-			$this->db->order_by('vendor_invoice_id', 'desc');
+        if($para1 == 'list'){
+            $this->db->order_by('vendor_invoice_id', 'desc');
             $page_data['vendor_payments'] = $this->db->get('vendor_invoice')->result_array();
             $this->load->view('back/admin/pay_to_vendor_list', $page_data);
-		}
+        }
         else if($para1 == 'delete'){
             $this->db->where('vendor_invoie_id',$para2);
             $this->db->delete('vendor_invoice');
         }
-		elseif ($para1 == 'vendor_payment_status') {
+        elseif ($para1 == 'vendor_payment_status') {
             $page_data['vendor_invoice_id']         = $para2;
             $page_data['method']    = $this->db->get_where('vendor_invoice', array(
                 'vendor_invoice_id' => $para2))->row()->method;
             $page_data['payment_details'] = $this->db->get_where('vendor_invoice', array(
                 'vendor_invoice_id' => $para2
             ))->row()->payment_details;
-            $page_data['status'] =	$this->db->get_where('vendor_invoice',array('vendor_invoice_id' => $para2))->row()->status;
+            $page_data['status'] =  $this->db->get_where('vendor_invoice',array('vendor_invoice_id' => $para2))->row()->status;
             
             $this->load->view('back/admin/pay_to_vendor_payment_status', $page_data);
-		}
-		elseif($para1 == 'payment_status_set'){
-			$data['status'] = $this->input->post('vendor_payment_status');
-			$this->db->where('vendor_invoice_id',$para2);
-			$this->db->update('vendor_invoice',$data);
-		}
-		else{
-			$page_data['page_name'] = "pay_to_vendor";
+        }
+        elseif($para1 == 'payment_status_set'){
+            $data['status'] = $this->input->post('vendor_payment_status');
+            $this->db->where('vendor_invoice_id',$para2);
+            $this->db->update('vendor_invoice',$data);
+        }
+        else{
+            $page_data['page_name'] = "pay_to_vendor";
             $page_data['vendor_payments'] = $this->db->get('vendor_invoice')->result_array();
             $this->load->view('back/index', $page_data);
-		}
-	}
-	
+        }
+    }
+    
     /* Membership Management */
     function membership($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('membership') || $this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['title']    = $this->input->post('title');
@@ -2167,12 +2987,12 @@ class Admin extends CI_Controller
     function admins($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('admin')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['name']      = $this->input->post('name');
             $data['email']     = $this->input->post('email');
-			$password		   = $this->input->post('password');
+            $password          = $this->input->post('password');
             $data['password']  = sha1($password);
             $data['phone']     = $this->input->post('phone');
             $data['address']   = $this->input->post('address');
@@ -2187,7 +3007,7 @@ class Admin extends CI_Controller
             $this->load->view('back/admin/admin_edit', $page_data);
         } elseif ($para1 == "update") {
             $data['name']    = $this->input->post('name');
-			$password		   = $this->input->post('password');
+            $password          = $this->input->post('password');
             $data['password']  = sha1($password);
             $data['phone']   = $this->input->post('phone');
             $data['address'] = $this->input->post('address');
@@ -2220,7 +3040,7 @@ class Admin extends CI_Controller
     function role($para1 = '', $para2 = '')
     {
         if (!$this->crud_model->admin_permission('role')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $data['name']        = $this->input->post('name');
@@ -2289,61 +3109,61 @@ class Admin extends CI_Controller
             $page_data['control'] = 'admin';
             $this->load->view('back/forget_password',$page_data);
         } else if ($para1 == 'forget') {
-			
-        	$this->load->library('form_validation');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');			
+            
+            $this->load->library('form_validation');
+            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');            
             if ($this->form_validation->run() == FALSE)
             {
                 echo validation_errors();
             }
             else
             {
-				$query = $this->db->get_where('admin', array(
-					'email' => $this->input->post('email')
-				));
-				if ($query->num_rows() > 0) {
-					$admin_id         = $query->row()->admin_id;
-					$password         = substr(hash('sha512', rand()), 0, 12);
-					$data['password'] = sha1($password);
-					$this->db->where('admin_id', $admin_id);
-					$this->db->update('admin', $data);
-					if ($this->email_model->password_reset_email('admin', $admin_id, $password)) {
-						echo 'email_sent';
-					} else {
-						echo 'email_not_sent';
-					}
-				} else {
-					echo 'email_nay';
-				}
-			}
+                $query = $this->db->get_where('admin', array(
+                    'email' => $this->input->post('email')
+                ));
+                if ($query->num_rows() > 0) {
+                    $admin_id         = $query->row()->admin_id;
+                    $password         = substr(hash('sha512', rand()), 0, 12);
+                    $data['password'] = sha1($password);
+                    $this->db->where('admin_id', $admin_id);
+                    $this->db->update('admin', $data);
+                    if ($this->email_model->password_reset_email('admin', $admin_id, $password)) {
+                        echo 'email_sent';
+                    } else {
+                        echo 'email_not_sent';
+                    }
+                } else {
+                    echo 'email_nay';
+                }
+            }
         } else {
-        	$this->load->library('form_validation');
-			$this->form_validation->set_rules('email', 'Email', 'required|valid_email');
-			$this->form_validation->set_rules('password', 'Password', 'required');
-			
+            $this->load->library('form_validation');
+            $this->form_validation->set_rules('email', 'Email', 'required|valid_email');
+            $this->form_validation->set_rules('password', 'Password', 'required');
+            
             if ($this->form_validation->run() == FALSE)
             {
                 echo validation_errors();
             }
             else
             {
-				$login_data = $this->db->get_where('admin', array(
-					'email' => $this->input->post('email'),
-					'password' => sha1($this->input->post('password'))
-				));
-				if ($login_data->num_rows() > 0) {
-					foreach ($login_data->result_array() as $row) {
-						$this->session->set_userdata('login', 'yes');
-						$this->session->set_userdata('admin_login', 'yes');
-						$this->session->set_userdata('admin_id', $row['admin_id']);
-						$this->session->set_userdata('admin_name', $row['name']);
-						$this->session->set_userdata('title', 'admin');
-						echo 'lets_login';
-					}
-				} else {
-					echo 'login_failed';
-				}
-			}
+                $login_data = $this->db->get_where('admin', array(
+                    'email' => $this->input->post('email'),
+                    'password' => sha1($this->input->post('password'))
+                ));
+                if ($login_data->num_rows() > 0) {
+                    foreach ($login_data->result_array() as $row) {
+                        $this->session->set_userdata('login', 'yes');
+                        $this->session->set_userdata('admin_login', 'yes');
+                        $this->session->set_userdata('admin_id', $row['admin_id']);
+                        $this->session->set_userdata('admin_name', $row['name']);
+                        $this->session->set_userdata('title', 'admin');
+                        echo 'lets_login';
+                    }
+                } else {
+                    echo 'login_failed';
+                }
+            }
         }
     }
     
@@ -2351,14 +3171,14 @@ class Admin extends CI_Controller
     function logout()
     {
         $this->session->sess_destroy();
-        redirect(base_url() . 'index.php/admin', 'refresh');
+        redirect(base_url() . 'admin', 'refresh');
     }
     
     /* Sending Newsletters */
     function newsletter($para1 = "")
     {
         if (!$this->crud_model->admin_permission('newsletter')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "send") {
             $users       = explode(',', $this->input->post('users'));
@@ -2542,207 +3362,256 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	function activation(){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    function activation(){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
         }
-		$page_data['page_name'] = "activation";
+        $page_data['page_name'] = "activation";
         $this->load->view('back/index', $page_data);
-	}
-	function faqs(){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    }
+    function faqs(){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
         }
-		$page_data['page_name'] = "faq_settings";
+        $page_data['page_name'] = "faq_settings";
         $this->load->view('back/index', $page_data);
-	}
-	function payment_method(){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    }
+    function payment_method(){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
         }
-		$page_data['page_name'] = "payment_method";
+        $page_data['page_name'] = "payment_method";
         $this->load->view('back/index', $page_data);
-	}
-	function curency_method(){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    }
+    function curency_method(){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
         }
-		$page_data['page_name'] = "curency_method";
+        $page_data['page_name'] = "curency_method";
         $this->load->view('back/index', $page_data);
-	}
+    }
     
     /* Manage Frontend User Interface */
     function set_def_curr($para1 = '', $para2 = '',$para3 = '',$para4 = '')
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if($para1 == 'home'){
-			$this->db->where('type', "home_def_currency");
-			$this->db->update('business_settings', array(
-				'value' => $this->input->post('home_def_currency')
-			));
-		} 
-		if($para1 == 'system'){
-			$this->db->where('type', "currency");
-			$this->db->update('business_settings', array(
-				'value' => $this->input->post('currency')
-			));
-			
-			$this->db->where('currency_settings_id', $this->input->post('currency'));
-			$this->db->update('currency_settings', array(
-				'exchange_rate_def' => '1'
-			));
-		} 
-		recache();
-		
+        if($para1 == 'home'){
+            $this->db->where('type', "home_def_currency");
+            $this->db->update('business_settings', array(
+                'value' => $this->input->post('home_def_currency')
+            ));
+        } 
+        if($para1 == 'system'){
+            $this->db->where('type', "currency");
+            $this->db->update('business_settings', array(
+                'value' => $this->input->post('currency')
+            ));
+            
+            $this->db->where('currency_settings_id', $this->input->post('currency'));
+            $this->db->update('currency_settings', array(
+                'exchange_rate_def' => '1'
+            ));
+        } 
+        recache();
+        
     }
-	
-	
+    
+    
     /* Manage Frontend User Interface */
-    function ui_settings($para1 = '', $para2 = '',$para3 = '',$para4 = '')
+     function ui_settings($para1 = '', $para2 = '',$para3 = '',$para4 = '')
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "ui_home") {
-			if ($para2 == 'update_home_page') {
+            if ($para2 == 'update_home_page') {
                 $this->db->where('type', "home_page_style");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('home_page')
                 ));
-				recache();
-			}
-			elseif ($para2 == 'home_vendor') {
-				if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
-					redirect(base_url() . 'index.php/admin');
-				}
-				$this->db->where('type', "parallax_vendor_title");
+                recache();
+            }
+            elseif ($para2 == 'home_vendor') {
+                if ($this->crud_model->get_type_name_by_id('general_settings','58','value') !== 'ok') {
+                    redirect(base_url() . 'admin');
+                }
+                $this->db->where('type', "parallax_vendor_title");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('pv_title')
                 ));
-				$this->db->where('type', "no_of_vendor");
+                $this->db->where('type', "no_of_vendor");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('vendor_no')
                 ));
-				if($_FILES["par"]['tmp_name']){
-					move_uploaded_file($_FILES["par"]['tmp_name'], 'uploads/others/parralax_vendor.jpg');
-				}
-				recache();
-			}
-			elseif ($para2 == 'home_search') {
-				$this->db->where('type', "parallax_search_title");
+                if($_FILES["par"]['tmp_name']){
+                    move_uploaded_file($_FILES["par"]['tmp_name'], 'uploads/others/parralax_vendor.jpg');
+                }
+                recache();
+            }
+            elseif ($para2 == 'home_search') {
+                $this->db->where('type', "parallax_search_title");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('ps_title')
                 ));
-				if($_FILES["par3"]['tmp_name']){
-					move_uploaded_file($_FILES["par3"]['tmp_name'], 'uploads/others/parralax_search.jpg');
-				}
-				recache();
-			}
-			elseif ($para2 == 'home_blog') {
-				$this->db->where('type', "parallax_blog_title");
+                if($_FILES["par3"]['tmp_name']){
+                    move_uploaded_file($_FILES["par3"]['tmp_name'], 'uploads/others/parralax_search.jpg');
+                }
+                recache();
+            }
+            elseif ($para2 == 'home_blog') {
+                $this->db->where('type', "parallax_blog_title");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('pb_title')
                 ));
-				$this->db->where('type', "no_of_blog");
+                $this->db->where('type', "no_of_blog");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('blog_no')
                 ));
-				if($_FILES["par2"]['tmp_name']){
-					move_uploaded_file($_FILES["par2"]['tmp_name'], 'uploads/others/parralax_blog.jpg');
-				}
-				recache();
-			}
-			elseif ($para2 == 'top_slide_categories') {
+                if($_FILES["par2"]['tmp_name']){
+                    move_uploaded_file($_FILES["par2"]['tmp_name'], 'uploads/others/parralax_blog.jpg');
+                }
+                recache();
+            }
+            elseif ($para2 == 'top_slide_categories') {
                 $this->db->where('type', "top_slide_categories");
                 $this->db->update('ui_settings', array(
                     'value' => json_encode($this->input->post('top_category'))
                 ));
-				
-				$this->db->where('type', "no_of_todays_deal");
+                
+                $this->db->where('type', "no_of_todays_deal");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('deal_no')
                 ));
-				recache();
-			}
-			elseif ($para2 == 'home_brand') {
-				$this->db->where('type', "no_of_brands");
+                recache();
+            }
+            elseif ($para2 == 'home_brand') {
+                $this->db->where('type', "no_of_brands");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('brand_no')
                 ));
-				recache();
-			}
-			elseif ($para2 == 'home_featured') {
-				$this->db->where('type', "no_of_featured_products");
+                recache();
+            }
+            elseif ($para2 == 'home_featured') {
+                $this->db->where('type', "no_of_featured_products");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('featured_no')
                 ));
-				
+                
                 $this->db->where('type', "featured_product_box_style");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('fea_pro_box')
                 ));
-				recache();
-			}
-			else if ($para2 == 'feature_publish_set') {
-				if ($para4 == 'true') {
-					$data['value'] = 'ok';
-				} else if ($para4 == 'false') {
-					$data['value'] = 'no';
-				}
-				$this->db->where('ui_settings_id', $para3);
-				$this->db->update('ui_settings', $data);
-				recache();
-			}
-			elseif ($para2 == 'home1_category') {
-				$category = $this->input->post('category');
-				$sub_category = $this->input->post('sub_category');
-				$color_back = $this->input->post('color1');
-				$color_text = $this->input->post('color2');
-				$result= array();
-				foreach($category as $i=>$row){
-					$result[] = array(
-									'category' => $row,
-									'sub_category' => $sub_category[$row],
-									'color_back' => $color_back[$row],
-									'color_text' => $color_text[$row]
-								);
-				}
-				$data['value'] = json_encode($result);
-				$this->db->where('type', 'home_categories');
-				$this->db->update('ui_settings', $data);
-				
-				$this->db->where('type', "category_product_box_style");
+                recache();
+            }
+            elseif ($para2 == 'product_bundle') {
+                $this->db->where('type', "no_of_product_bundle");
+                $this->db->update('ui_settings', array(
+                    'value' => $this->input->post('bundle_no')
+                ));
+                
+                $this->db->where('type', "product_bundle_box_style");
+                $this->db->update('ui_settings', array(
+                    'value' => $this->input->post('fea_pro_box')
+                ));
+                recache();
+            }
+            elseif ($para2 == 'customer_product') {
+                $this->db->where('type', "no_of_customer_product");
+                $this->db->update('ui_settings', array(
+                    'value' => $this->input->post('customer_product_no')
+                ));
+                recache();
+            }
+            else if ($para2 == 'feature_publish_set') {
+                if ($para4 == 'true') {
+                    $data['value'] = 'ok';
+                } else if ($para4 == 'false') {
+                    $data['value'] = 'no';
+                }
+                $this->db->where('ui_settings_id', $para3);
+                $this->db->update('ui_settings', $data);
+                recache();
+            }
+            else if ($para2 == 'product_bundle_publish_set') {
+                if ($para4 == 'true') {
+                    $data['value'] = 'ok';
+                } else if ($para4 == 'false') {
+                    $data['value'] = 'no';
+                }
+                $this->db->where('ui_settings_id', $para3);
+                $this->db->update('ui_settings', $data);
+                recache();
+            }
+            else if ($para2 == 'customer_product_publish_set') {
+                if ($para4 == 'true') {
+                    $data['value'] = 'ok';
+                } else if ($para4 == 'false') {
+                    $data['value'] = 'no';
+                }
+                $this->db->where('ui_settings_id', $para3);
+                $this->db->update('ui_settings', $data);
+                recache();
+            }
+            else if ($para2 == '_set') {
+                if ($para4 == 'true') {
+                    $data['value'] = 'ok';
+                } else if ($para4 == 'false') {
+                    $data['value'] = 'no';
+                }
+                $this->db->where('ui_settings_id', $para3);
+                $this->db->update('ui_settings', $data);
+                recache();
+            }
+            elseif ($para2 == 'home1_category') {
+                $category = $this->input->post('category');
+                $sub_category = $this->input->post('sub_category');
+                $color_back = $this->input->post('color1');
+                $color_text = $this->input->post('color2');
+                $result= array();
+                foreach($category as $i=>$row){
+                    $result[] = array(
+                                    'category' => $row,
+                                    'sub_category' => $sub_category[$row],
+                                    'color_back' => $color_back[$row],
+                                    'color_text' => $color_text[$row]
+                                );
+                }
+                $data['value'] = json_encode($result);
+                $this->db->where('type', 'home_categories');
+                $this->db->update('ui_settings', $data);
+                
+                $this->db->where('type', "category_product_box_style");
                 $this->db->update('ui_settings', array(
                     'value' => $this->input->post('box_style')
                 ));
-				recache();
-			}
-			elseif ($para2 == 'home2_category') {
-				//$box = $this->input->post('box');
-				$category = $this->input->post('category');
-				$sub_category = $this->input->post('sub_category');
-				$color_back = $this->input->post('color1');
-				$color_text = $this->input->post('color2');
-				$result= array();
-				foreach($category as $i=>$row){
-					$result[] = array(
-									//'no'	=>$row,
-									'category' => $row,
-									'sub_category' => $sub_category[$row],
-									'color_back' => $color_back[$row],
-									'color_text' => $color_text[$row]
-								);
-				}
-				$data['value'] = json_encode($result);
-				$this->db->where('type', 'home_categories');
-				$this->db->update('ui_settings', $data);
-				recache();
-			}
-			elseif ($para2 == 'cat_colors') {
-				var_dump($para3);
-			}
+                recache();
+            }
+            elseif ($para2 == 'home2_category') {
+                //$box = $this->input->post('box');
+                $category = $this->input->post('category');
+                $sub_category = $this->input->post('sub_category');
+                $color_back = $this->input->post('color1');
+                $color_text = $this->input->post('color2');
+                $result= array();
+                foreach($category as $i=>$row){
+                    $result[] = array(
+                                    //'no'  =>$row,
+                                    'category' => $row,
+                                    'sub_category' => $sub_category[$row],
+                                    'color_back' => $color_back[$row],
+                                    'color_text' => $color_text[$row]
+                                );
+                }
+                $data['value'] = json_encode($result);
+                $this->db->where('type', 'home_categories');
+                $this->db->update('ui_settings', $data);
+                recache();
+            }
+            elseif ($para2 == 'cat_colors') {
+                var_dump($para3);
+            }
         }
         elseif ($para1 == 'email_theme') {
             $this->db->where('type', "email_theme_style");
@@ -2760,11 +3629,12 @@ class Admin extends CI_Controller
                 recache();
             }
         }
-		elseif ($para1 == 'sub_by_cat') {
+        elseif ($para1 == 'sub_by_cat') {
             echo $this->crud_model->select_html('sub_category','sub-category','sub_category_name','add','demo-cs-multiselect','','category',$para2,'check_sub_length');
         }
         //$this->load->view('back/index', $page_data);
     }
+    
     
     /* Checking Login Stat */
     function is_logged()
@@ -2780,7 +3650,7 @@ class Admin extends CI_Controller
     function page_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "page_settings";
         $page_data['tab_name']  = $para1;
@@ -2791,7 +3661,7 @@ class Admin extends CI_Controller
     function contact_message($para1 = "", $para2 = "")
     {
         if (!$this->crud_model->admin_permission('contact_message')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'delete') {
             $this->db->where('contact_message_id', $para2);
@@ -2830,7 +3700,7 @@ class Admin extends CI_Controller
     function logo_settings($para1 = "", $para2 = "", $para3 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "select_logo") {
             $page_data['page_name'] = "select_logo";
@@ -2865,16 +3735,16 @@ class Admin extends CI_Controller
                 $this->db->insert("logo", $data);
                 $id = $this->db->insert_id();
                 move_uploaded_file($_FILES["file"]['tmp_name'][$i], 'uploads/logo_image/logo_' . $id . '.png');
-				
+                
             }
             return;
         } elseif ($para1 == "upload_logo1") {
                 $data['name'] = '';
                 $this->db->insert("logo", $data);
                 $id = $this->db->insert_id();
-				echo $_FILES["logo"]['name'];
+                echo $_FILES["logo"]['name'];
                 move_uploaded_file($_FILES["logo"]['tmp_name'], 'uploads/logo_image/logo_' . $id . '.png');
-				
+                
         }else {
             $this->load->view('back/index', $page_data);
         }
@@ -2884,11 +3754,11 @@ class Admin extends CI_Controller
     function favicon_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $name = $_FILES['img']['name'];
         $ext  = end((explode(".", $name)));
-		$this->db->where('type', 'fav_ext');
+        $this->db->where('type', 'fav_ext');
         $this->db->update('ui_settings', array(
             'value' =>$ext
         ));
@@ -2900,7 +3770,7 @@ class Admin extends CI_Controller
     function social_login_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $this->db->where('type', "fb_appid");
         $this->db->update('general_settings', array(
@@ -2936,7 +3806,7 @@ class Admin extends CI_Controller
     function product_comment($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $this->db->where('type', "discus_id");
         $this->db->update('general_settings', array(
@@ -2956,7 +3826,7 @@ class Admin extends CI_Controller
     function captcha_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $this->db->where('type', "captcha_public");
         $this->db->update('general_settings', array(
@@ -2972,37 +3842,37 @@ class Admin extends CI_Controller
     function site_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "site_settings";
         $page_data['tab_name']  = $para1;
         $this->load->view('back/index', $page_data);
     }
-	
-	/* Manage Email Template */
+    
+    /* Manage Email Template */
     function email_template($para1 = "", $para2 = "")
     {
         if (!$this->crud_model->admin_permission('email_template')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		
-		if($para1 = "update"){
-			$data['subject'] = $this->input->post('subject');
-			$data['body'] = $this->input->post('body');
-			
-			$this->db->where('email_template_id', $para2);
+        
+        if($para1 = "update"){
+            $data['subject'] = $this->input->post('subject');
+            $data['body'] = $this->input->post('body');
+            
+            $this->db->where('email_template_id', $para2);
             $this->db->update('email_template', $data);
-		}
-		$page_data['page_name'] = "email_template";
-		$page_data['table_info']  = $this->db->get('email_template')->result_array();;
-		$this->load->view('back/index', $page_data);
+        }
+        $page_data['page_name'] = "email_template";
+        $page_data['table_info']  = $this->db->get('email_template')->result_array();;
+        $this->load->view('back/index', $page_data);
     }
     
     /* Manage Languages */
     function language_settings($para1 = "", $para2 = "", $para3 = "")
     {
         if (!$this->crud_model->admin_permission('language')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'add_lang') {
             $this->load->view('back/admin/language_add');
@@ -3057,7 +3927,7 @@ class Admin extends CI_Controller
 
                 $res['no']  = $row['word_id'];
                 $res['word']  = '<div class="col-md-12 abv">'.ucwords(str_replace('_', ' ', $row['word'])).'</div>';
-                $res['translation']  =   form_open(base_url() . 'index.php/admin/language_settings/upd_trn/'.$row['word_id'], array(
+                $res['translation']  =   form_open(base_url() . 'admin/language_settings/upd_trn/'.$row['word_id'], array(
                                             'class' => 'form-horizontal trs',
                                             'method' => 'post',
                                             'id' => $lang.'_'.$row['word_id']
@@ -3152,11 +4022,11 @@ class Admin extends CI_Controller
         }
     }
     
-    /* Manage Business Settings */
+     /* Manage Business Settings */
     function business_settings($para1 = "", $para2 = "", $para3 = "")
     {
         if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         else if ($para1 == "cash_set") {
             $val = '';
@@ -3200,7 +4070,7 @@ class Admin extends CI_Controller
             ));
             recache();
         }
-		else if ($para1 == "c2_set") {
+        else if ($para1 == "c2_set") {
             $val = '';
             if ($para2 == 'true') {
                 $val = 'ok';
@@ -3227,8 +4097,21 @@ class Admin extends CI_Controller
                 'value' => $val
             ));
             recache();
+        }else if ($para1 == "pum_set") {
+            $val = '';
+            if ($para2 == 'true') {
+                $val = 'ok';
+            } else if ($para2 == 'false') {
+                $val = 'no';
+            }
+            echo $val;
+            $this->db->where('type', "pum_set");
+            $this->db->update('business_settings', array(
+                'value' => $val
+            ));
+            recache();
         }
-		else if ($para1 == "cur_set") {
+        else if ($para1 == "cur_set") {
             $val = '';
             if ($para3 == 'true') {
                 $val = 'ok';
@@ -3236,12 +4119,48 @@ class Admin extends CI_Controller
                 $val = 'no';
             }
             echo $val;
-			$data['status']    = $val;
+            $data['status']    = $val;
             $this->db->where('currency_settings_id', $para2);
             $this->db->update('currency_settings', $data);
             recache();
         }
-		else if ($para1 == "vendor_set") {
+        else if ($para1 == "vendor_set") {
+            $val = '';
+            if ($para3 == 'true') {
+                $val = 'ok';
+            } else if ($para3 == 'false') {
+                $val = 'no';
+                $this->db->where('type', "show_vendor_website");
+                $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+            }
+
+            $this->db->where('type', "vendor_system");
+            $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+            
+            recache();
+           
+        }
+        else if ($para1 == "wallet_system_set") {
+            $val = '';
+            if ($para3 == 'true') {
+                $val = 'ok';
+            } else if ($para3 == 'false') {
+                $val = 'no';
+            }
+
+            $this->db->where('type', "wallet_system_set");
+            $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+            
+            recache();
+           
+        }
+        else if ($para1 == "show_vendor_set") {
             $val = '';
             if ($para3 == 'true') {
                 $val = 'ok';
@@ -3249,13 +4168,13 @@ class Admin extends CI_Controller
                 $val = 'no';
             }
             echo $val;
-            $this->db->where('type', "vendor_system");
+            $this->db->where('type', "show_vendor_website");
             $this->db->update('general_settings', array(
                 'value' => $val
             ));
             recache();
         }
-		else if ($para1 == "physical_product_set") {
+        else if ($para1 == "physical_product_set") {
             $val = '';
             if ($para3 == 'true') {
                 $val = 'ok';
@@ -3269,7 +4188,7 @@ class Admin extends CI_Controller
             ));
             recache();
         }
-		else if ($para1 == "digital_product_set") {
+        else if ($para1 == "digital_product_set") {
             $val = '';
             if ($para3 == 'true') {
                 $val = 'ok';
@@ -3283,23 +4202,51 @@ class Admin extends CI_Controller
             ));
             recache();
         }
+        else if ($para1 == "bundle_product_set") {
+            $val = '';
+            if ($para3 == 'true') {
+                $val = 'ok';
+            } else if ($para3 == 'false') {
+                $val = 'no';
+            }
+            echo $val;
+            $this->db->where('type', "bundle_product_activation");
+            $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+            recache();
+        }
+        else if ($para1 == "customer_product_set") {
+            $val = '';
+            if ($para3 == 'true') {
+                $val = 'ok';
+            } else if ($para3 == 'false') {
+                $val = 'no';
+            }
+            echo $val;
+            $this->db->where('type', "customer_product_activation");
+            $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+            recache();
+        }
         else if ($para1 == 'set') {
-			echo $this->input->post('stripe_set');
-			$this->db->where('type',"paypal_set");
+            echo $this->input->post('stripe_set');
+            $this->db->where('type',"paypal_set");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('paypal_set')
             ));
-			$this->db->where('type', "stripe_set");
+            $this->db->where('type', "stripe_set");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('stripe_set')
             ));
-			$this->db->where('type', "cash_set");
+            $this->db->where('type', "cash_set");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('cash_set')
             ));
-		}
-		else if ($para1 == 'faq_set') {
-			$faqs = array();
+        }
+        else if ($para1 == 'faq_set') {
+            $faqs = array();
             $f_q  = $this->input->post('f_q');
             $f_a  = $this->input->post('f_a');
             foreach ($f_q as $i => $r) {
@@ -3312,13 +4259,13 @@ class Admin extends CI_Controller
             $this->db->update('business_settings', array(
                 'value' => json_encode($faqs)
             ));
-		}
-		else if ($para1 == 'set1') {
+        }
+        else if ($para1 == 'set1') {
             $this->db->where('type', "paypal_email");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('paypal_email')
             ));
-			
+            
             $this->db->where('type', "paypal_type");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('paypal_type')
@@ -3331,7 +4278,7 @@ class Admin extends CI_Controller
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('stripe_publishable')
             ));
-			$this->db->where('type', "c2_user");
+            $this->db->where('type', "c2_user");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('c2_user')
             ));
@@ -3347,7 +4294,7 @@ class Admin extends CI_Controller
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('vp_merchant_id')
             ));
-			$this->db->where('type', "shipping_cost_type");
+            $this->db->where('type', "shipping_cost_type");
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('shipping_cost_type')
             ));
@@ -3359,7 +4306,19 @@ class Admin extends CI_Controller
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('shipment_info')
             ));
-		}
+            $this->db->where('type', "pum_merchant_key");
+            $this->db->update('business_settings', array(
+                'value' => $this->input->post('merchant_key')
+            ));
+            $this->db->where('type', "pum_merchant_salt");
+            $this->db->update('business_settings', array(
+                'value' => $this->input->post('merchant_salt')
+            ));
+            $this->db->where('type', "pum_account_type");
+            $this->db->update('business_settings', array(
+                'value' => $this->input->post('pum_account_type')
+            ));
+        }
         else if ($para1 == 'set_currency') {
             $this->db->where('type', "currency");
             $this->db->update('business_settings', array(
@@ -3383,54 +4342,54 @@ class Admin extends CI_Controller
             $this->db->update('business_settings', array(
                 'value' => $this->input->post('exchange')
             ));
-			$this->db->where('type', "vendor_system");
+            $this->db->where('type', "vendor_system");
             $this->db->update('general_settings', array(
                 'value' => $this->input->post('vendor_system')
             ));
             recache();
         }else if($para1 =='set_3'){
-			$data['exchange_rate']    = $this->input->post('exchange');
+            $data['exchange_rate']    = $this->input->post('exchange');
             $this->db->where('currency_settings_id', $para2);
             $this->db->update('currency_settings', $data);
-			$this->db->where('type', "vendor_system");
+            $this->db->where('type', "vendor_system");
             $this->db->update('general_settings', array(
                 'value' => $this->input->post('vendor_system')
             ));
-		}else {
+        }else {
             $page_data['page_name'] = "business_settings";
             $this->load->view('back/index', $page_data);
         }
     }
-	
-	/* Currency Format Settings */
-	function set_currency_format(){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    
+    /* Currency Format Settings */
+    function set_currency_format(){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
         }
-		
-		$this->db->where('type', 'currency_format');
-		$this->db->update('business_settings', array(
-			'value' => $this->input->post('currency_format')
-		));
-		
-		$this->db->where('type', 'symbol_format');
-		$this->db->update('business_settings', array(
-			'value' => $this->input->post('symbol_format')
-		));
-		
-		$this->db->where('type', 'no_of_decimals');
-		$this->db->update('business_settings', array(
-			'value' => $this->input->post('no_of_decimals')
-		));
-		
-		recache();
-	}
+        
+        $this->db->where('type', 'currency_format');
+        $this->db->update('business_settings', array(
+            'value' => $this->input->post('currency_format')
+        ));
+        
+        $this->db->where('type', 'symbol_format');
+        $this->db->update('business_settings', array(
+            'value' => $this->input->post('symbol_format')
+        ));
+        
+        $this->db->where('type', 'no_of_decimals');
+        $this->db->update('business_settings', array(
+            'value' => $this->input->post('no_of_decimals')
+        ));
+        
+        recache();
+    }
     
     /* Manage Admin Settings */
     function manage_admin($para1 = "")
     {
         if ($this->session->userdata('admin_login') != 'yes') {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'update_password') {
             $user_data['password'] = $this->input->post('password');
@@ -3467,12 +4426,12 @@ class Admin extends CI_Controller
     function page($para1 = '', $para2 = '', $para3 = '')
     {
         if (!$this->crud_model->admin_permission('page')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'do_add') {
             $parts             = array();
             $data['page_name'] = $this->input->post('page_name');
-            $data['tag'] 	   = $this->input->post('tag');
+            $data['tag']       = $this->input->post('tag');
             $data['parmalink'] = $this->input->post('parmalink');
             $size              = $this->input->post('part_size');
             $type              = $this->input->post('part_content_type');
@@ -3499,7 +4458,7 @@ class Admin extends CI_Controller
         } elseif ($para1 == "update") {
             $parts             = array();
             $data['page_name'] = $this->input->post('page_name');
-            $data['tag'] 	   = $this->input->post('tag');
+            $data['tag']       = $this->input->post('tag');
             $data['parmalink'] = $this->input->post('parmalink');
             $size              = $this->input->post('part_size');
             $type              = $this->input->post('part_content_type');
@@ -3553,7 +4512,7 @@ class Admin extends CI_Controller
     function general_settings($para1 = "", $para2 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "terms") {
             $this->db->where('type', "terms_conditions");
@@ -3561,7 +4520,7 @@ class Admin extends CI_Controller
                 'value' => $this->input->post('terms')
             ));
         }
-		if ($para1 == "preloader") {
+        if ($para1 == "preloader") {
             $this->db->where('type', "preloader_bg");
             $this->db->update('general_settings', array(
                 'value' => $this->input->post('preloader_bg')
@@ -3654,6 +4613,19 @@ class Admin extends CI_Controller
                 'value' => $val
             ));
         }
+        if ($para1 == "g_analytics_set") {
+            $val = '';
+            if ($para2 == 'true') {
+                $val = 'ok';
+            } else if ($para2 == 'false') {
+                $val = 'no';
+            }
+            echo $val;
+            $this->db->where('type', "g_analytics_set");
+            $this->db->update('general_settings', array(
+                'value' => $val
+            ));
+        }
         if ($para1 == "set") {
             $this->db->where('type', "system_name");
             $this->db->update('general_settings', array(
@@ -3716,7 +4688,7 @@ class Admin extends CI_Controller
             $this->db->update('general_settings', array(
                 'value' => $this->input->post('contact_about')
             ));
-			
+            
         }
         if ($para1 == "footer") {
             $this->db->where('type', "footer_text");
@@ -3728,7 +4700,7 @@ class Admin extends CI_Controller
                 'value' => json_encode($this->input->post('footer_category'))
             ));
         }
-		 if ($para1 == "font") {
+         if ($para1 == "font") {
             $this->db->where('type', "font");
             $this->db->update('ui_settings', array(
                 'value' => $this->input->post('font')
@@ -3739,12 +4711,12 @@ class Admin extends CI_Controller
             $this->db->update('ui_settings', array(
                 'value' => $this->input->post('header_color')
             ));
-			$this->db->where('type', "footer_color");
+            $this->db->where('type', "footer_color");
             $this->db->update('ui_settings', array(
                 'value' => $this->input->post('header_color')
             ));
         }
-		if ($para1 == "mail_status") {
+        if ($para1 == "mail_status") {
             $val = '';
             if ($para2 == 'true') {
                 $val = 'smtp';
@@ -3757,7 +4729,7 @@ class Admin extends CI_Controller
                 'value' => $val
             ));
         }
-		if ($para1 == "captcha_status") {
+        if ($para1 == "captcha_status") {
             $val = '';
             if ($para2 == 'true') {
                 $val = 'ok';
@@ -3770,36 +4742,36 @@ class Admin extends CI_Controller
                 'value' => $val
             ));
         }
-		
-		
+        
+        
         recache();
     }
     function smtp_settings($para1 = "", $para2 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if ($para1 == "set") {
+        if ($para1 == "set") {
             $this->db->where('type', 'smtp_host');
             $this->db->update('general_settings', array('value' => $this->input->post('smtp_host')));
-			
-			$this->db->where('type', 'smtp_port');
+            
+            $this->db->where('type', 'smtp_port');
             $this->db->update('general_settings', array('value' => $this->input->post('smtp_port')));
-			
-			$this->db->where('type', 'smtp_user');
+            
+            $this->db->where('type', 'smtp_user');
             $this->db->update('general_settings', array('value' => $this->input->post('smtp_user')));
-			
-			$this->db->where('type', 'smtp_pass');
+            
+            $this->db->where('type', 'smtp_pass');
             $this->db->update('general_settings', array('value' => $this->input->post('smtp_pass')));
-			
-			redirect(base_url() . 'index.php/admin/site_settings/smtp_settings/', 'refresh');
-		}
-	}
+            
+            redirect(base_url() . 'admin/site_settings/smtp_settings/', 'refresh');
+        }
+    }
     /* Manage Social Links */
     function social_links($para1 = "")
     {
         if (!$this->crud_model->admin_permission('site_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "set") {
             $this->db->where('type', "facebook");
@@ -3826,7 +4798,7 @@ class Admin extends CI_Controller
             $this->db->update('social_links', array(
                 'value' => $this->input->post('youtube')
             ));
-            redirect(base_url() . 'index.php/admin/site_settings/social_links/', 'refresh');
+            redirect(base_url() . 'admin/site_settings/social_links/', 'refresh');
         }
         recache();
     }
@@ -3834,7 +4806,7 @@ class Admin extends CI_Controller
     function seo_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('seo')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == "set") {
             $this->db->where('type', "meta_description");
@@ -3862,11 +4834,11 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	
-	function ticket($para1 = "", $para2 = "", $para3 = "")
+    
+    function ticket($para1 = "", $para2 = "", $para3 = "")
     {
         if (!$this->crud_model->admin_permission('ticket')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         if ($para1 == 'delete') {
             $this->db->where('ticket_id', $para2);
@@ -3877,19 +4849,19 @@ class Admin extends CI_Controller
             $this->load->view('back/admin/ticket_list', $page_data);
         } elseif ($para1 == 'reply') {
             $data['message'] = $this->input->post('reply');
-			$data['time'] = time();
-			$data['from_where'] = json_encode(array('type'=>'admin','id'=>''));
-			$data['to_where'] = $this->db->get_where('ticket_message',array('ticket_id'=>$para2))->row()->from_where;
-			$data['ticket_id']= $para2;
-			$data['view_status']= json_encode(array('user_show'=>'no','admin_show'=>'ok'));
-			$data['subject']  = $this->db->get_where('ticket_message',array('ticket_id'=>$para2))->row()->subject;
+            $data['time'] = time();
+            $data['from_where'] = json_encode(array('type'=>'admin','id'=>''));
+            $data['to_where'] = $this->db->get_where('ticket_message',array('ticket_id'=>$para2))->row()->from_where;
+            $data['ticket_id']= $para2;
+            $data['view_status']= json_encode(array('user_show'=>'no','admin_show'=>'ok'));
+            $data['subject']  = $this->db->get_where('ticket_message',array('ticket_id'=>$para2))->row()->subject;
             $this->db->insert('ticket_message',$data);
         } elseif ($para1 == 'view') {
             $page_data['message_data'] = $this->db->get_where('ticket', array(
                 'ticket_id' => $para2
             ))->result_array();
-			$this->crud_model->ticket_message_viewed($para2,'admin');
-			$page_data['tic']=$para2;
+            $this->crud_model->ticket_message_viewed($para2,'admin');
+            $page_data['tic']=$para2;
             $this->load->view('back/admin/ticket_view', $page_data);
         } else if ($para1 == 'view_user') {
             $page_data['user_data'] = $this->db->get_where('user', array(
@@ -3907,37 +4879,37 @@ class Admin extends CI_Controller
             $this->load->view('back/index', $page_data);
         }
     }
-	function display_settings($para1 = "")
+    function display_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('display_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "display_settings";
         $page_data['tab_name']  = $para1;
         $this->load->view('back/index', $page_data);
     }
-	function preloader_view($para1 = "")
+    function preloader_view($para1 = "")
     {
         if (!$this->crud_model->admin_permission('display_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['from_admin'] = true;
         $page_data['preloader']  = $para1;
         $this->load->view('front/preloader', $page_data);
     }
-	function captha_n_social_settings($para1 = "")
+    function captha_n_social_settings($para1 = "")
     {
         if (!$this->crud_model->admin_permission('captha_n_social_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $page_data['page_name'] = "captha_n_social_settings";
         $page_data['tab_name']  = $para1;
         $this->load->view('back/index', $page_data);
     }
-	function google_api_key($para1 = "")
+    function google_api_key($para1 = "")
     {
         if (!$this->crud_model->admin_permission('captha_n_social_settings')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
         $this->db->where('type', "google_api_key");
         $this->db->update('general_settings', array(
@@ -3945,71 +4917,82 @@ class Admin extends CI_Controller
         ));
         recache();
     }
-	function currency_settings($para1 = "",$para2 = ""){
-		if (!$this->crud_model->admin_permission('business_settings')) {
-            redirect(base_url() . 'index.php/admin');
+    function google_analytics_key($para1 = ""){
+        if (!$this->crud_model->admin_permission('captha_n_social_settings')) {
+            redirect(base_url() . 'admin');
         }
-		if($para1 =='set_rate'){
-			if($this->input->post('exchange')){
-				echo $data['exchange_rate']    		= $this->input->post('exchange');
-			}
-			if($this->input->post('exchange_def')){
-				echo $data['exchange_rate_def']    	= $this->input->post('exchange_def');
-			}
-			if($this->input->post('name')){
-				echo $data['name']    	= $this->input->post('name');
-			}
-			if($this->input->post('symbol')){
-				echo $data['symbol']    	= $this->input->post('symbol');
-			}
+        $this->db->where('type', "google_analytics_key");
+        $this->db->update('general_settings', array(
+            'value' => $this->input->post('tracking_id')
+        ));
+        recache();
+
+    }
+    function currency_settings($para1 = "",$para2 = ""){
+        if (!$this->crud_model->admin_permission('business_settings')) {
+            redirect(base_url() . 'admin');
+        }
+        if($para1 =='set_rate'){
+            if($this->input->post('exchange')){
+                echo $data['exchange_rate']         = $this->input->post('exchange');
+            }
+            if($this->input->post('exchange_def')){
+                echo $data['exchange_rate_def']     = $this->input->post('exchange_def');
+            }
+            if($this->input->post('name')){
+                echo $data['name']      = $this->input->post('name');
+            }
+            if($this->input->post('symbol')){
+                echo $data['symbol']        = $this->input->post('symbol');
+            }
             $this->db->where('currency_settings_id', $para2);
             $this->db->update('currency_settings', $data);
             recache();
-		}
-	}
-	function default_images($para1 = "",$para2 = "")
+        }
+    }
+    function default_images($para1 = "",$para2 = "")
     {
         if (!$this->crud_model->admin_permission('default_images')) {
-            redirect(base_url() . 'index.php/admin');
+            redirect(base_url() . 'admin');
         }
-		if($para1 == "set_images"){
-			move_uploaded_file($_FILES[$para2]['tmp_name'], 'uploads/'.$para2.'/default.jpg');
-			recache();
-		}
-		$page_data['default_list'] = array('product_image','digital_logo_image','category_image','sub_category_image','brand_image','blog_image','banner_image','user_image','vendor_logo_image','vendor_banner_image','membership_image','slides_image');
+        if($para1 == "set_images"){
+            move_uploaded_file($_FILES[$para2]['tmp_name'], 'uploads/'.$para2.'/default.jpg');
+            recache();
+        }
+        $page_data['default_list'] = array('product_image','digital_logo_image','category_image','sub_category_image','brand_image','blog_image','banner_image','user_image','vendor_logo_image','vendor_banner_image','membership_image','slides_image');
         $page_data['page_name'] = "default_images";
         $this->load->view('back/index', $page_data);
     }
-	function theme_part(){
+    function theme_part(){
         $this->load->view('back/admin/theme_part');
-	}
-	function logo_part(){
+    }
+    function logo_part(){
         $this->load->view('back/admin/logo_part');
-	}
-	function preloader_part(){
-		
+    }
+    function preloader_part(){
+        
         $this->load->view('back/admin/preloader_settings');
-	}
-	function font_part(){
-		
+    }
+    function font_part(){
+        
         $this->load->view('back/admin/font');
-	}
-	function favicon_part(){
-		
+    }
+    function favicon_part(){
+        
         $this->load->view('back/admin/favicon');
-	}
-	function home_part(){
+    }
+    function home_part(){
         $this->load->view('back/admin/home_settings');
-	}
-	function contact_part(){
+    }
+    function contact_part(){
         $this->load->view('back/admin/contact_set');
-	}
-	function footer_part(){
+    }
+    function footer_part(){
         $this->load->view('back/admin/footer_set');
-	}
-	function home_item_change($para1=""){
+    }
+    function home_item_change($para1=""){
         $this->load->view('back/admin/home_change_'.$para1);
-	}
+    }
 
 }
 /* End of file welcome.php */

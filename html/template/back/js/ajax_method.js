@@ -76,7 +76,7 @@
 			        });
 			        
 				} else if(type=='delete') {
-					ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+list_cont_func,'list','first');
+					ajax_load(base_url+''+user_type+'/'+module+'/'+list_cont_func,'list','first');
 					other_delete();
 				} else if(type=='other') {
 					other();
@@ -108,30 +108,30 @@
 	$(document).ready(function() {
 		if($('#lang_select').length){
 		} else {
-			ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+list_cont_func,'list','first');
+			ajax_load(base_url+''+user_type+'/'+module+'/'+list_cont_func,'list','first');
 		}
 	});
 
 	function ajax_modal(type,title,noty,form_id,id){
 		modal_form(title,noty,form_id);
-		ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+type+'/'+id,'form','form');
+		ajax_load(base_url+''+user_type+'/'+module+'/'+type+'/'+id,'form','form');
 		sound('ajax_load');
 	}
 
 	function ajax_set_list(extra){
-		ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+list_cont_func+'/'+extra,'list','first');
+		ajax_load(base_url+''+user_type+'/'+module+'/'+list_cont_func+'/'+extra,'list','first');
 		sound('ajax_load');
 	}
 
 	function ajax_set_full(type,title,noty,form_id,id){
 		//full_form(title,noty,form_id);
-		ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+type+'/'+id,'list','form');
+		ajax_load(base_url+''+user_type+'/'+module+'/'+type+'/'+id,'list','form');
 		sound('ajax_load');
 	}
 
 	$('#multi_dlt_btn').on('click', function(){
 		var ids = $('#hidden_input').val();
-		ajax_load(base_url+'index.php/'+user_type+'/'+module+'/multi_delete/'+ids,'list','delete');
+		ajax_load(base_url+''+user_type+'/'+module+'/multi_delete/'+ids,'list','delete');
 	});
 
 
@@ -140,7 +140,34 @@
 		msg = '<div class="modal-title">'+msg+'</div>';
 		bootbox.confirm(msg, function(result) {
 			if (result) {
-				ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+dlt_cont_func+'/'+id,'list','delete');
+				ajax_load(base_url+''+user_type+'/'+module+'/'+dlt_cont_func+'/'+id,'list','delete');
+				$.activeitNoty({
+					type: 'danger',
+					icon : 'fa fa-check',
+					message : dss,
+					container : 'floating',
+					timer : 3000
+				});
+				sound('delete');
+			}else{
+				$.activeitNoty({
+					type: 'danger',
+					icon : 'fa fa-minus',
+					message : cncle,
+					container : 'floating',
+					timer : 3000
+				});
+				sound('cancelled');
+			};
+		});
+	}
+
+
+	function delete_all(msg){
+		msg = '<div class="modal-title">'+msg+'</div>';
+		bootbox.confirm(msg, function(result) {
+			if (result) {
+				ajax_load(base_url+user_type+'/'+module+'/delete/');
 				$.activeitNoty({
 					type: 'danger',
 					icon : 'fa fa-check',
@@ -167,7 +194,7 @@
 		msg = '<div class="modal-title">'+msg+'</div>';
 		bootbox.confirm(msg, function(result) {
 			if (result) {
-				ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+func+'/'+id,'list','delete');
+				ajax_load(base_url+''+user_type+'/'+module+'/'+func+'/'+id,'list','delete');
 				$.activeitNoty({
 					type: 'success',
 					icon : 'fa fa-check',
@@ -196,7 +223,7 @@
 		msg = '<div class="modal-title">'+msg+'</div>';
 		bootbox.confirm(msg, function(result) {
 			if (result) {
-				ajax_load(base_url+'index.php/'+user_type+'/'+module+'/dlt_img/'+id,'list','delete');
+				ajax_load(base_url+''+user_type+'/'+module+'/dlt_img/'+id,'list','delete');
 				$.activeitNoty({
 					type: 'success',
 					icon : 'fa fa-check',
@@ -449,7 +476,7 @@
 						buttonp.html(working);
 					},
 					success: function() {
-						ajax_load(base_url+'index.php/'+user_type+'/'+module+'/'+list_cont_func+'/'+extra,'list','first');
+						ajax_load(base_url+''+user_type+'/'+module+'/'+list_cont_func+'/'+extra,'list','first');
 						if(form_id == 'vendor_approval'){
 							noty = enb_ven;
 						}
@@ -549,7 +576,7 @@
 					var changeCheckbox = document.querySelector('#pub_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/product_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/product_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -558,7 +585,7 @@
 							container : 'floating',
 							timer : 3000
 						});
-						setTimeout(function(){ ajax_set_list(); }, 500);
+						// setTimeout(function(){ ajax_set_list(); }, 500);
 						sound('published');
 					  } else {
 						$.activeitNoty({
@@ -578,7 +605,7 @@
 					var changeCheckbox = document.querySelector('#fet_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/product_featured_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/product_featured_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -606,7 +633,121 @@
 					var changeCheckbox = document.querySelector('#deal_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/product_deal_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/product_deal_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  if(changeCheckbox.checked == true){
+						$.activeitNoty({
+							type: 'success',
+							icon : 'fa fa-check',
+							message : ptd,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('featured');
+					  } else {
+						$.activeitNoty({
+							type: 'danger',
+							icon : 'fa fa-check',
+							message : ptnd,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('unfeatured');
+					  }
+					  //alert(changeCheckbox.checked);
+					};
+				});
+				$(".sw4").each(function(){
+					new Switchery(document.getElementById('v_fet_'+$(this).data('id')), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
+					var changeCheckbox = document.querySelector('#v_fet_'+$(this).data('id'));
+					changeCheckbox.onchange = function() {
+					  //alert($(this).data('id'));
+					  ajax_load(base_url+''+user_type+'/'+module+'/product_v_featured_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  if(changeCheckbox.checked == true){
+						$.activeitNoty({
+							type: 'success',
+							icon : 'fa fa-check',
+							message : pfe,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('featured');
+					  } else {
+						$.activeitNoty({
+							type: 'danger',
+							icon : 'fa fa-check',
+							message : pufe,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('unfeatured');
+					  }
+					  //alert(changeCheckbox.checked);
+					};
+				});
+			} else if($('#bund').length){
+				$(".sw1").each(function(){
+					new Switchery(document.getElementById('pub_'+$(this).data('id')), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
+					var changeCheckbox = document.querySelector('#pub_'+$(this).data('id'));
+					changeCheckbox.onchange = function() {
+					  //alert($(this).data('id'));
+					  ajax_load(base_url+''+user_type+'/'+module+'/bundle_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'bund','others');
+					  if(changeCheckbox.checked == true){
+						$.activeitNoty({
+							type: 'success',
+							icon : 'fa fa-check',
+							message : ppus,
+							container : 'floating',
+							timer : 3000
+						});
+						// setTimeout(function(){ ajax_set_list(); }, 500);
+						sound('published');
+					  } else {
+						$.activeitNoty({
+							type: 'danger',
+							icon : 'fa fa-check',
+							message : pups,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('unpublished');
+					  }
+					  //alert(changeCheckbox.checked);
+					};
+				});
+				$(".sw2").each(function(){
+					new Switchery(document.getElementById('fet_'+$(this).data('id')), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
+					var changeCheckbox = document.querySelector('#fet_'+$(this).data('id'));
+					changeCheckbox.onchange = function() {
+					  //alert($(this).data('id'));
+					  ajax_load(base_url+''+user_type+'/'+module+'/bundle_featured_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'bund','others');
+					  if(changeCheckbox.checked == true){
+						$.activeitNoty({
+							type: 'success',
+							icon : 'fa fa-check',
+							message : pfe,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('featured');
+					  } else {
+						$.activeitNoty({
+							type: 'danger',
+							icon : 'fa fa-check',
+							message : pufe,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('unfeatured');
+					  }
+					  //alert(changeCheckbox.checked);
+					};
+				});
+				$(".sw3").each(function(){
+					new Switchery(document.getElementById('del_'+$(this).data('id')), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
+					var changeCheckbox = document.querySelector('#del_'+$(this).data('id'));
+					changeCheckbox.onchange = function() {
+					  //alert($(this).data('id'));
+					  ajax_load(base_url+''+user_type+'/'+module+'/bundle_deal_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'bund','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -635,7 +776,7 @@
 					var changeCheckbox = document.querySelector('#sli_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/slider_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'slid','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/slider_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'slid','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -664,7 +805,7 @@
 					var changeCheckbox = document.querySelector('#pag_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/page_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'pag','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/page_publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'pag','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -696,7 +837,7 @@
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/general_settings/'+set+'/'+changeCheckbox.checked,'site','others');
+					  ajax_load(base_url+''+user_type+'/general_settings/'+set+'/'+changeCheckbox.checked,'site','others');
 					  if(changeCheckbox.checked == true){
 						if(set == 'g_login_set'){
 							ntsen = glen;
@@ -705,6 +846,9 @@
 						if(set == 'fb_login_set'){
 							ntsen = flen;
 							$('.fb_log_ins').show('fast');
+						}if(set == 'g_analytics_set'){
+							ntsen = gae;
+							$('.g_analy_ins').show('fast');
 						}
 						$.activeitNoty({
 							type: 'success',
@@ -722,6 +866,10 @@
 						if(set == 'fb_login_set'){
 							ntsds = flds;
 							$('.fb_log_ins').hide('fast');
+						}
+						if(set == 'g_analytics_set'){
+							ntsds = gad;
+							$('.g_analy_ins').hide('fast');
 						}
 						$.activeitNoty({
 							type : 'danger',
@@ -744,7 +892,38 @@
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/general_settings/'+set+'/'+changeCheckbox.checked,'site','othersd');
+					  ajax_load(base_url+''+user_type+'/general_settings/'+set+'/'+changeCheckbox.checked,'site','othersd');
+					  if(changeCheckbox.checked == true){
+						$.activeitNoty({
+							type: 'success',
+							icon : 'fa fa-check',
+							message : su_e,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('published');
+					  } else {
+						$.activeitNoty({
+							type : 'danger',
+							icon : 'fa fa-check',
+							message : su_d,
+							container : 'floating',
+							timer : 3000
+						});
+						sound('unpublished');
+					  }
+					  //alert(changeCheckbox.checked);
+					};
+				});
+				$(".sw8").each(function(){
+					var h = $(this);
+					var id = h.attr('id');
+					var set = h.data('set');
+					new Switchery(document.getElementById(id), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
+					var changeCheckbox = document.querySelector('#'+id);
+					changeCheckbox.onchange = function() {
+					  //alert($(this).data('id'));
+					  ajax_load(base_url+''+user_type+'/ui_settings/ui_home/customer_product_publish_set/' + $(this).data('id') + '/' + changeCheckbox.checked, '', '');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -775,7 +954,7 @@
 					new Switchery(document.getElementById(id), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
-					  ajax_load(base_url+'index.php/'+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
+					  ajax_load(base_url+''+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -804,7 +983,7 @@
 					new Switchery(document.getElementById(id), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
-					  ajax_load(base_url+'index.php/'+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
+					  ajax_load(base_url+''+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -833,7 +1012,7 @@
 					new Switchery(document.getElementById(id), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
-					  ajax_load(base_url+'index.php/'+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
+					  ajax_load(base_url+''+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -862,7 +1041,7 @@
 					new Switchery(document.getElementById(id), {color:'rgb(100, 189, 99)', secondaryColor: '#cc2424', jackSecondaryColor: '#c8ff77'});
 					var changeCheckbox = document.querySelector('#'+id);
 					changeCheckbox.onchange = function() {
-					  ajax_load(base_url+'index.php/'+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
+					  ajax_load(base_url+''+user_type+'/business_settings/'+set+'/'+changeCheckbox.checked,'demo-home','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',
@@ -891,7 +1070,7 @@
 					var changeCheckbox = document.querySelector('#pub_'+$(this).data('id'));
 					changeCheckbox.onchange = function() {
 					  //alert($(this).data('id'));
-					  ajax_load(base_url+'index.php/'+user_type+'/'+module+'/publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
+					  ajax_load(base_url+''+user_type+'/'+module+'/publish_set/'+$(this).data('id')+'/'+changeCheckbox.checked,'prod','others');
 					  if(changeCheckbox.checked == true){
 						$.activeitNoty({
 							type: 'success',

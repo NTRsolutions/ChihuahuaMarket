@@ -25,7 +25,7 @@
 	
 	if($count!==0){
 ?>
-<section class="page-section">
+<section class="page-section" style="padding-top: 30px">
     <div class="container">
     	<div class="row">
             <div class="row">

@@ -2,10 +2,12 @@
     <div class="media">
     	<div class="cover"></div>
         <div class="media-link image_delay" data-src="<?php echo $this->crud_model->file_view('product',$product_id,'','','thumb','src','multi','one'); ?>" style="background-image:url('<?php echo img_loading(); ?>');background-size:cover;">
-            <span class="icon-view" onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')"
-            		data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
-                <strong><i class="fa fa-eye"></i></strong>
-            </span>
+            <div class="quick-view-sm hidden-xs hidden-sm">
+                <span class="icon-view" onclick="quick_view('<?php echo $this->crud_model->product_link($product_id,'quick'); ?>')"
+                		data-toggle="tooltip" data-original-title="<?php  echo translate('quick_view'); ?>">
+                    <strong><i class="fa fa-eye"></i></strong>
+                </span>
+            </div>
         </div>
     </div>
     <div class="caption text-center">
@@ -30,9 +32,9 @@
             <span class="btn  btn-theme-transparent btn-icon-left" onclick="to_cart(<?php echo $product_id; ?>,event)">
             	<i class="fa fa-shopping-cart"></i>
             	<?php if($this->crud_model->is_added_to_cart($product_id)=="yes"){ 
-					echo translate('added_to_cart');  
+					// echo translate('added_to_cart');  
 					} else { 
-					echo translate('add_to_cart');  
+					// echo translate('add_to_cart');  
 					} 
 				?>
             </span>

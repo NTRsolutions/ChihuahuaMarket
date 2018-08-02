@@ -2,7 +2,7 @@
     <div id="navbar-container" class="boxed">
         <!--Brand logo & name-->
         <div class="navbar-header">
-            <a href="<?php echo base_url(); ?>index.php/<?php echo $this->session->userdata('title'); ?>" class="navbar-brand">
+            <a href="<?php echo base_url(); ?><?php echo $this->session->userdata('title'); ?>" class="navbar-brand">
                 <img src="<?php echo $this->crud_model->logo('admin_login_logo'); ?>" alt="<?php echo $system_name;?>" class="brand-icon" style="padding:8px;">
                 <div class="brand-title">
                     <span class="brand-text"><?php echo $system_name;?></span>
@@ -78,7 +78,7 @@
                         <!-- User dropdown menu -->
                         <ul class="head-list">
                             <li>
-                                <a href="<?php echo base_url(); ?>index.php/admin/manage_admin/">
+                                <a href="<?php echo base_url(); ?>vendor/manage_vendor/">
                                     <i class="fa fa-user fa-fw fa-lg"></i> <?php echo translate('profile');?>
                                 </a>
                             </li>
@@ -86,7 +86,7 @@
 
                         <!-- Dropdown footer -->
                         <div class="pad-all text-right">
-                            <a href="<?php echo base_url(); ?>index.php/<?php echo $this->session->userdata('title'); ?>/logout/" class="btn btn-primary">
+                            <a href="<?php echo base_url(); ?><?php echo $this->session->userdata('title'); ?>/logout/" class="btn btn-primary">
                                 <i class="fa fa-sign-out fa-fw"></i> <?php echo translate('logout');?>
                             </a>
                         </div>

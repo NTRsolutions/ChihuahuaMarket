@@ -23,7 +23,7 @@
         <tr class="<?php if($row['viewed'] !== 'ok'){ echo 'pending'; } ?>" >
             <td><?php echo $i; ?></td>
             <td>#<?php echo $row['sale_code']; ?></td>
-            <td><?php echo $this->crud_model->get_type_name_by_id('user',$row['buyer'],'username'); ?></td>
+            <td><?php if($row['buyer'] == 'guest'){ echo '<b class="text-info">Guest</b>';} else{echo $this->db->get_where('user', array('user_id' => $row['buyer']))->row()->username;} ?></td>
             <td><?php echo date('d-m-Y',$row['sale_datetime']); ?></td>
             <td class="pull-right"><?php echo currency('','def').$this->cart->format_number($row['grand_total']); ?></td>
             <td>
