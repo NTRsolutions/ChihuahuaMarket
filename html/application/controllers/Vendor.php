@@ -1887,8 +1887,8 @@ class Vendor extends CI_Controller
                 'company' => $this->input->post('company'),
                 'display_name' => $this->input->post('display_name'),
                 'city' => $this->input->post('city'),
-                'state' => $this->input->post('state'),
-                'country' => $this->input->post('country'),
+                'state' => "Chihuahua",//$this->input->post('state'),
+                'country' => "México",//$this->input->post('country'),
                 'zip' => $this->input->post('zip'),
                 
                 'details' => $this->input->post('details'),

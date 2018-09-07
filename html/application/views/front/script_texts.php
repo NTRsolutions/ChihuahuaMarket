@@ -216,6 +216,7 @@
 
 	$(document).ready(function () {
 		$.ajax({url: '<?php echo base_url(); ?>home/surfer_info'});
+		$("input[name='phone']").mask(' 000 000-0000');
 	});
 
 		

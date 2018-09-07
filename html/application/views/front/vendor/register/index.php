@@ -4,7 +4,7 @@
             <div class="col-sm-8 col-sm-offset-2">
                 <div class="logo_top">
                     <a href="<?php echo base_url()?>">
-                        <img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200">
+                        <!--img class="img-responsive" src="<?php echo $this->crud_model->logo('home_bottom_logo'); ?>" alt="Shop" style="z-index:200"-->
                     </a>
                 </div>
 				<?php
@@ -73,17 +73,7 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input class="form-control required" name="city" type="text" placeholder="<?php echo translate('city');?>" data-toggle="tooltip" title="<?php echo translate('city');?>">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <input class="form-control required" name="state" type="text" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <input class="form-control required" name="country" type="text" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>">
+                                <input class="form-control required" name="city" id="city" type="text" placeholder="<?php echo translate('city');?>" data-toggle="tooltip" title="<?php echo translate('city');?>">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -91,6 +81,17 @@
                                 <input class="form-control required" name="zip" type="text" placeholder="<?php echo translate('zip');?>" data-toggle="tooltip" title="<?php echo translate('zip');?>">
                             </div>
                         </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input class="form-control required" name="state" id="state_code" type="hidden" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>" value="8">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <input class="form-control required" name="country" id="country_code" type="hidden" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>" value="MX">
+                            </div>
+                        </div>
+                        
                         <div class="col-md-12 terms">
                             <input  name="terms_check" type="checkbox" value="ok" > 
                             <?php echo translate('i_agree_with');?>
@@ -140,3 +141,5 @@
 		vertical-align:middle;
 	}
 </style>
+<script src="<?php echo base_url(); ?>/template/common/plugins/jquery/typeahead.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/get_states_cities.js"></script>

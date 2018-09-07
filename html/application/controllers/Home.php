@@ -2149,8 +2149,8 @@ class Home extends CI_Controller
                             $data['address2']           = $this->input->post('address2');
                             $data['company']            = $this->input->post('company');
                             $data['display_name']       = $this->input->post('display_name');
-                            $data['state']              = $this->input->post('state');
-                            $data['country']            = $this->input->post('country');
+                            $data['state']              = "Chihuahua";//$this->input->post('state');
+                            $data['country']            = "México";//$this->input->post('country');
                             $data['city']               = $this->input->post('city');
                             $data['zip']                = $this->input->post('zip');
                             $data['create_timestamp']   = time();
@@ -2181,8 +2181,8 @@ class Home extends CI_Controller
                         $data['address2']           = $this->input->post('address2');
                         $data['company']            = $this->input->post('company');
                         $data['display_name']       = $this->input->post('display_name');
-                        $data['state']              = $this->input->post('state');
-                        $data['country']            = $this->input->post('country');
+                        $data['state']              = "Chihuahua";//$this->input->post('state');
+                        $data['country']            = "México";//$this->input->post('country');
                         $data['city']               = $this->input->post('city');
                         $data['zip']                = $this->input->post('zip');
                         $data['create_timestamp']   = time();
@@ -2608,15 +2608,20 @@ class Home extends CI_Controller
             $msg = '';
             $this->form_validation->set_rules('username', 'First Name', 'required');
             $this->form_validation->set_rules('email', 'Email', 'required|is_unique[user.email]|valid_email',array('required' => 'You have not provided %s.', 'is_unique' => 'This %s already exists.'));
-            $this->form_validation->set_rules('password1', 'Password', 'required|matches[password2]');
-            $this->form_validation->set_rules('password2', 'Confirm Password', 'required');
+            //$this->form_validation->set_rules('password1', 'Password', 'required|matches[password2]');
+            $this->form_validation->set_rules('password1', 'Password', 'callback_validate_pass_strength');
+            //$this->form_validation->set_rules('password2', 'Confirm Password', 'required');
+            $this->form_validation->set_rules('password2', 'Confirm Password', 'required|matches[password1]', array('matches' => translate('the_confirm_password_field_does_not_match_the_password_field')));
             $this->form_validation->set_rules('address1', 'Address Line 1', 'required');
             $this->form_validation->set_rules('phone', 'Phone', 'required');
             $this->form_validation->set_rules('surname', 'Last Name', 'required');
             $this->form_validation->set_rules('zip', 'ZIP', 'required');
             $this->form_validation->set_rules('city', 'City', 'required');
             $this->form_validation->set_rules('state', 'State', 'required');
-            $this->form_validation->set_rules('country', 'Country', 'required');
+            //$this->form_validation->set_rules('country', 'Country', 'required');
+            $this->form_validation->set_rules('country', 'Country', 'required|callback_validate_country_state[country_code]');
+            $this->form_validation->set_rules('state_code', 'State code', 'callback_validate_country_state[country_code,state]');
+            $this->form_validation->set_rules('country_code', 'Country Code', 'required',array('required'=>translate("select_a_country_from_list") ));
             $this->form_validation->set_rules('terms_check', 'Terms & Conditions', 'required', array('required' => translate('you_must_agree_with_terms_&_conditions')));
 
             if ($this->form_validation->run() == FALSE)
@@ -2638,14 +2643,18 @@ class Home extends CI_Controller
                             $data['surname']       = $this->input->post('surname');
                             $data['zip']           = $this->input->post('zip');
                             $data['city']          = $this->input->post('city');
-                            $data['state']          = $this->input->post('state');
-                            $data['country']          = $this->input->post('country');
+                            $data['state']         = $this->input->post('state');
+                            //$data['state_code']    = $this->input->post('state_code');
+                            $data['country']       = $this->input->post('country');
+                            //$data['country_code']  = $this->input->post('country_code');
                             $data['langlat']       = '';
                             $data['wishlist']      = '[]';
                             $data['package_info']  = '[]';
                             $data['product_upload']= $this->db->get_where('package', array('package_id' => 1))->row()->upload_amount;
                             $data['creation_date'] = time();
-                            
+                            //if($this->input->post('country')=="Mexico" || $this->input->post('country_code')=="MX" )
+                            //    $data['country']   = 'México';
+
                             if ($this->input->post('password1') == $this->input->post('password2')) {
                                 $password         = $this->input->post('password1');
                                 $data['password'] = sha1($password);
@@ -2670,8 +2679,10 @@ class Home extends CI_Controller
                         $data['surname']       = $this->input->post('surname');
                         $data['zip']           = $this->input->post('zip');
                         $data['city']          = $this->input->post('city');
-                        $data['state']          = $this->input->post('state');
-                        $data['country']          = $this->input->post('country');
+                        $data['state']         = $this->input->post('state');
+                        //$data['state_code']    = $this->input->post('state_code');
+                        $data['country']       = $this->input->post('country');
+                        //$data['country_code']  = $this->input->post('country_code');
                         $data['langlat']       = '';
                         $data['wishlist']      = '[]';
                         $data['package_info']  = '[]';
@@ -4991,7 +5002,105 @@ class Home extends CI_Controller
     {
         echo $this->crud_model->select_html2($table, $table, $name, 'add', 'form-control selectpicker', '', $field, $id, $on_change, 'single', translate($table), $fst_val);
     }
+
+    function get_cities_state()
+    {
+        
+        $name = $this->input->post('name');//filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+        $country = $this->input->post('country');//filter_input(INPUT_POST, 'country', FILTER_SANITIZE_STRING);
+        $state = $this->input->post('state');//filter_input(INPUT_POST, 'state', FILTER_SANITIZE_STRING);
+        //$C_code = $this->input->post('country_code');
+       
+        if($name != ''){
+            
+            $this->db->limit(10);
+            if($country!=="1")
+            {
+                 $this->db->like('name', $name, 'after');
+                if($state!=="1")
+                {
+                    if($country=='MX'){
+                        $this->db->where('state_id', $state);
+                    }else if($country=='US'){
+                        $this->db->where('us_state_code', $state);
+                    }
+                    
+                    $result =$this->db->get('cities')->result_array();
+                    //$result = $this->db->last_query();
+                   
+                }else
+                {
+                   
+                    $this->db->where('country_code',$country);
+                    $result =$this->db->get('country_states')->result_array();
+                }
+            }else{
+                $this->db->like('country_name', $name, 'after');
+                $result =$this->db->get('countries')->result_array();
+            }
+            echo json_encode($result);
+            
+        }else
+            echo json_encode('false');
+        return;
+    }
     
+    public function validate_country_state($str,$str2,$state=""){
+
+        if ($str == 'test')
+        {
+            $tmess=translate('_characters');
+            $this->form_validation->set_message('validate_pass_strength', $tmess);
+            return FALSE;
+        }
+        else
+        {
+            return TRUE;
+        }
+    }
+
+    public function validate_pass_strength($str){
+        $minlength=7;
+        $strength = 0;
+        
+        if (strlen($str) < $minlength) { 
+            //$tmess='The {field} field can not be the word "test"';
+            $tmess=translate('password_must_be_at_least_').$minlength.translate('_characters');
+            $this->form_validation->set_message('validate_pass_strength', $tmess);
+            return FALSE;
+        }
+        
+       // if (strlen($str) >= $minlength) $strength += 1;
+        
+        //If password contains both lower and uppercase characters, increase strength value.
+        if (preg_match('/([a-z].*[A-Z])|([A-Z].*[a-z])/',$str))  $strength += 1;
+        
+        //If it has numbers and characters, increase strength value.
+        if (preg_match('/([a-zA-Z])/) && password.match(/([0-9])/',$str))  $strength += 1 ;
+        
+        //If it has one special character, increase strength value.
+        if (preg_match('/([!,%,&,@,#,$,^,*,?,_,~])/',$str))  $strength += 1;
+        
+        //if it has two special characters, increase strength value.
+        if (preg_match('/(.*[!,%,&,@,#,$,^,*,?,_,~].*[!,%,&,@,#,$,^,*,?,_,~])/',$str)) $strength += 1;
+        
+        
+        //Calculated strength value, we can return messages
+        
+        if ($strength >= 2 )
+        {
+            return TRUE ;    
+        }
+        //If value is less than 2
+        else
+        {
+           $tmess=translate('password_strength_to_weak,_use_at_least_1_special_character,_1_number,_1_lower_and_1_uppercase');
+            $this->form_validation->set_message('validate_pass_strength', $tmess);
+            return FALSE;   
+        }
+        
+    }
+
 }
 
 /* End of file home.php */

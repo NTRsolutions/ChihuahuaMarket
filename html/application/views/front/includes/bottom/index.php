@@ -4,6 +4,7 @@
         <script src="<?php echo base_url(); ?>template/front/js/ajax_method.js"></script>
         <script src="<?php echo base_url(); ?>template/front/js/bootstrap-notify.min.js"></script>
         <script src="<?php echo base_url(); ?>template/front/plugins/jquery-ui/jquery-ui.min.js"></script>
+        <script src="<?php echo base_url(); ?>template/common/plugins/jquery/jquery.mask.min.js"></script>
         <script src="<?php echo base_url(); ?>template/front/plugins/bootstrap/js/bootstrap.min.js"></script>
         <script src="<?php echo base_url(); ?>template/front/plugins/bootstrap-select/js/bootstrap-select.min.js"></script>
         <!-- JS Global -->

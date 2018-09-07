@@ -6,6 +6,7 @@ echo form_open(base_url() . 'home/cart_finish/go', array(
         )
     );
 ?>
+
 <script src="https://checkout.stripe.com/checkout.js"></script>
 <!-- PAGE -->
 <section class="page-section color">
@@ -60,6 +61,35 @@ echo form_open(base_url() . 'home/cart_finish/go', array(
                 signin('guest_checkout');
             }
         });
+        var selected_payment="";
+        $('.payments-options').on('click','img',function(e){
+            
+            if(selected_payment!==""){
+                clearchks();
+            }
+            var currimg=e.target;
+            var src=currimg.src;
+            var chkimg='';
+
+            if(src.lastIndexOf('_chk')<(src.length-8) ){
+                if(src.lastIndexOf('.jpg')>1){
+                    chkimg='_chk.jpg';
+                }
+                currimg.src=src.slice(0, src.lastIndexOf('.jpg'))+chkimg;
+                selected_payment=currimg;
+            }
+        })
+        function clearchks(){
+            if(selected_payment!==""){
+                chksrc=selected_payment.src;
+                if(chksrc.lastIndexOf('_chk.jpg')>1){
+                    chkimg='.jpg';
+                }
+                selected_payment.src=chksrc.slice(0, chksrc.lastIndexOf('_chk.jpg'))+chkimg;
+                selected_payment="";
+            }
+
+        }
     });
 
     function load_orders(){

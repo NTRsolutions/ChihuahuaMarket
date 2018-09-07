@@ -61,15 +61,20 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input class="form-control" name="phone" type="text" placeholder="<?php echo translate('phone');?>" data-toggle="tooltip" title="<?php echo translate('phone');?>">
+                                <link rel="stylesheet" href="<?php echo base_url(); ?>/template/common/cssflags/intlTelInput.css">
+                                <input class="form-control" name="phone" id="phone" type="tel" placeholder="<?php echo translate('phone');?>" data-toggle="tooltip" title="<?php echo translate('phone');?>">
                             </div>
                         </div>
                         
                         <div class="col-md-6">
+                            
                             <div class="form-group">
                                 <input class="form-control pass1 required" type="password" name="password1" placeholder="<?php echo translate('password');?>" data-toggle="tooltip" title="<?php echo translate('password');?>">
                             </div>
+                            <div id="pass_stat"></div>
+                            
                         </div>
+
                         <div class="col-md-6">
                             <div class="form-group">
                                 <input class="form-control pass2 required" type="password" name="password2" placeholder="<?php echo translate('confirm_password');?>" data-toggle="tooltip" title="<?php echo translate('confirm_password');?>">
@@ -88,17 +93,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input class="form-control required" type="text" name="city" placeholder="<?php echo translate('city');?>" data-toggle="tooltip" title="<?php echo translate('city');?>">
+                                <input class="form-control required" type="text" name="country" id="country" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>">
+                                <input class="form-control required" type="hidden" name="country_code" id="country_code">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input class="form-control required" type="text" name="state" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>">
+                                <input class="form-control required" type="text" name="state" id="state" placeholder="<?php echo translate('state');?>" data-toggle="tooltip" title="<?php echo translate('state');?>">
+                                <input class="form-control required" type="hidden" name="state_code" id="state_code">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <input class="form-control required" type="text" name="country" placeholder="<?php echo translate('country');?>" data-toggle="tooltip" title="<?php echo translate('country');?>">
+                                <input class="form-control required" type="text" name="city" id="city" placeholder="<?php echo translate('city');?>" data-toggle="tooltip" title="<?php echo translate('city');?>">
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -192,3 +199,22 @@
 		vertical-align:middle;
 	}
 </style>
+
+<script>
+
+ window.js_lang={'00':'<?php echo translate('password_too_short');?>',
+ '10':'<?php echo translate('password_weak');?>',
+ '01':'<?php echo translate('password_good');?>',
+ '11':'<?php echo translate('password_strong');?>',
+ passnotmatch:'<?php echo translate('passwords_do_not_match');?>',
+ passmatch:'<?php echo translate('passwords_match');?>',
+ choose_one:'<?php echo translate('choose_one');?>',
+ empty:'<?php echo translate('empty');?>'};
+</script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/jquery/typeahead.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/intlTelInput.js"></script>
+<script>
+  $("#phone").intlTelInput();
+</script>
+<script src="<?php echo base_url(); ?>template/common/plugins/js/passwordscheck.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/get_states_cities.js"></script>

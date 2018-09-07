@@ -38,6 +38,23 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
+            <input class="form-control required address" name="country" id="country" value="<?php echo $country; ?>" type="text" placeholder="<?php echo translate('country');?>">
+            <input class="form-control required" type="hidden" name="country_code" id="country_code">
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <input class="form-control required address" name="state" id="state" value="<?php echo $state; ?>" type="text" placeholder="<?php echo translate('state');?>">
+            <input class="form-control required" type="hidden" name="state_code" id="state_code">
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <input class="form-control required address" name="city" id="city" value="<?php echo $city; ?>" type="text" placeholder="<?php echo translate('city');?>">
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
             <input class="form-control required"  name="zip" type="text" value="<?php echo $zip; ?>" placeholder="<?php echo translate('postcode/ZIP');?>">
         </div>
     </div>
@@ -48,7 +65,8 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
-            <input class="form-control required" value="<?php echo $phone ;?>" name="phone" type="text" placeholder="<?php echo translate('phone_number');?>">
+            <link rel="stylesheet" href="<?php echo base_url(); ?>/template/common/cssflags/intlTelInput.css">
+            <input class="form-control required" value="<?php echo $phone ;?>" name="phone" id="phone" type="tel" placeholder="<?php echo translate('phone_number');?>">
         </div>
     </div>
 
@@ -59,12 +77,12 @@
             </div>
         </div>
     </div>
-    <div class="col-sm-12" id="maps" style="height:400px;">
+    <!--div class="col-sm-12" id="maps" style="height:400px;">
         <div class="form-group">
             <div id="map-canvas" style="height:400px;">
             </div>
         </div>
-    </div>
+    </div-->
 
     <div class="col-md-12" style="display:none;">
         <div class="checkbox">
@@ -86,9 +104,16 @@
 
 
 <input type="hidden" id="first" value="yes"/>
+<script src="<?php echo base_url(); ?>/template/common/plugins/jquery/typeahead.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/get_states_cities.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/intlTelInput.js"></script>
 
+<script>
+  $("#phone").intlTelInput({
+  initialCountry: "mx"});
+</script>
 <script type="text/javascript">
-    $(document ).ready(function() {
-        set_cart_map();
-    });
+    //$(document ).ready(function() {
+    //    set_cart_map();
+    //});
 </script>

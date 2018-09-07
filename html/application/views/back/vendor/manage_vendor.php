@@ -61,7 +61,7 @@
 										<?php echo translate('phone');?>
                                         	</label>
                                     <div class="col-sm-6">
-                                        <input type="text" name="phone" value="<?php echo $row['phone']; ?>" id="demo-hor-3" class="form-control">
+                                        <input type="text" name="phone" value="<?php echo $row['phone']; ?>" id="phone" class="form-control">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -85,7 +85,8 @@
 										<?php echo translate('city');?>
                                     </label>
                                     <div class="col-sm-6">
-                                        <input type="text" name="city" value="<?php echo $row['city']; ?>" id="demo-hor-4" class="form-control address" onblur="set_cart_map('iio');">
+                                        <input type="text" name="city" value="<?php echo $row['city']; ?>" id="city" class="form-control address" onblur="set_cart_map('iio');">
+                                        <input type="hidden" name="city-map" value="<?php echo $row['city']; ?>" id="demo-hor-4" class="form-control address" >
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -93,7 +94,8 @@
 										<?php echo translate('state');?>
                                         	</label>
                                     <div class="col-sm-6">
-                                        <input type="text" name="state" value="<?php echo $row['state']; ?>" id="demo-hor-4" class="form-control address" onblur="set_cart_map('iio');">
+                                        <input type="text" name="state" value="<?php echo $row['state']; ?>" id="demo-hor-4" class="form-control address" onblur="set_cart_map('iio');" readonly>
+                                        <input type="hidden" name="state_code" id="state_code" value="8" class="form-control address" >
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -101,7 +103,8 @@
 										<?php echo translate('country');?>
                                         	</label>
                                     <div class="col-sm-6">
-                                        <input type="text" name="country" value="<?php echo $row['country']; ?>" id="demo-hor-4" class="form-control address" onblur="set_cart_map('iio');">
+                                        <input type="text" name="country" value="<?php echo $row['country']; ?>" id="demo-hor-4" class="form-control address" onblur="set_cart_map('iio');" readonly>
+                                        <input type="hidden" name="country_code" id="country_code" value="MX" class="form-control address">
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -196,7 +199,13 @@
         </div>
     </div>
 </div>
-
+<script src="<?php echo base_url(); ?>/template/common/plugins/jquery/typeahead.js"></script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/intlTelInput.js"></script>
+<script>
+  //$("#phone").intlTelInput();
+</script>
+<script src="<?php echo base_url(); ?>/template/common/plugins/js/get_states_cities.js"></script>
+<script src="<?php echo base_url(); ?>template/common/plugins/jquery/jquery.mask.min.js"></script>
 <script type="text/javascript">
 	$(".pass").blur(function() {
 		var pass1 = $(".pass1").val();
@@ -315,7 +324,8 @@
 <script>
     
     $(document).ready(function(){
-        set_cart_map();
+        //$("#phone").mask('000 000-0000');
+        //set_cart_map();
     });
 
     function set_cart_map(tty){
